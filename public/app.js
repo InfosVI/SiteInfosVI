@@ -265,8 +265,7 @@ const NEWS=[
 ];
 const ROADMAP=[
   {t:'Pouvoir d’achat VI : améliorations', items:[
-    ['Comparer à ma zone','Chaque pays affiché en écart par rapport à votre zone (ex. « +12 % de plus qu’à Montréal »), sur la carte, dans le classement et dans le graphique de la comparaison entre pays.'],
-    ['Export du graphique','Un bouton pour enregistrer le graphique « Évolution dans le temps » de la comparaison entre pays en image ou en PDF.']]},
+    ['Comparer à ma zone','Chaque pays affiché en écart par rapport à votre zone (ex. « +12 % de plus qu’à Montréal »), sur la carte, dans le classement et dans le graphique de la comparaison entre pays.']]},
   {t:'Module Épargne en VI', items:[
     ['Simulateur « Ce qu’il me reste »','Épargne possible chaque mois et sur toute la durée du VIE, selon la ville et vos dépenses (rien n’est enregistré).'],
     ['Comparateur d’épargne entre pays','Quel pays permet de mettre le plus d’argent de côté, à partir des loyers et du coût de la vie partagés par la communauté.']]},
