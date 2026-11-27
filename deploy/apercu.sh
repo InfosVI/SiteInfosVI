@@ -14,4 +14,7 @@ docker run --rm --network indemnite_donnees -e DATABASE_URL="postgres://apercu:$
   "ghcr.io/$GITHUB_PROPRIETAIRE/indemnite-outils:${APERCU_TAG:-preparation}" npx tsx scripts/migrer.ts
 docker compose up -d apercu
 docker image prune -f >/dev/null 2>&1 || true   # images remplacées (place disque)
-echo "$(date -u +%FT%TZ) Aperçu mis à jour" >> /var/log/indemnite-apercu.log
+# Version installée : numéro prévu (package.json de l'image) + repère du code (GIT_SHA)
+V=$(docker run --rm --entrypoint node "$IMG" -p "require('/app/package.json').version" 2>/dev/null || echo "?")
+SHA=$(docker image inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$IMG" | sed -n 's/^GIT_SHA=//p' | cut -c1-7)
+echo "$(date -u +%FT%TZ) Aperçu mis à jour : v$V en préparation${SHA:+ · $SHA}" >> /var/log/indemnite-apercu.log

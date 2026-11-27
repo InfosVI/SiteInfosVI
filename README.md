@@ -138,7 +138,7 @@ Tâches automatiques, lançables aussi à la main :
 |---|---|
 | `site-version` | version installée sur le vrai site (première ligne) |
 | `sudo tail -10 /var/log/indemnite-maj.log` | mises à jour du **vrai site** : « Nouvelle version vX.Y.Z », « Version vX.Y.Z en ligne », « Déjà à jour », ou retour automatique en cas de problème |
-| `sudo tail -10 /var/log/indemnite-apercu.log` | mises à jour de l'**aperçu** : une ligne « Aperçu mis à jour » à chaque nouvelle version en préparation |
+| `sudo tail -10 /var/log/indemnite-apercu.log` | mises à jour de l'**aperçu** : une ligne par nouvelle version en préparation, avec son numéro et le repère du code (« Aperçu mis à jour : v1.9.0 en préparation · 70098f0 ») |
 | `sudo tail -10 /var/log/indemnite-collecte.log` | derniers passages de la collecte des données |
 | `sudo tail -10 /var/log/indemnite-sauvegarde.log` | dernières sauvegardes |
 
