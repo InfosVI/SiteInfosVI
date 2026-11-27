@@ -96,6 +96,8 @@ Le fichier `.env` et le dossier `.data/` ne sont jamais envoyés sur GitHub.
 
 ## 3. Commandes
 
+### Sur l'ordinateur de développement
+
 | Commande | Effet |
 |---|---|
 | `npm run dev` | site local avec rechargement automatique |
@@ -105,6 +107,51 @@ Le fichier `.env` et le dossier `.data/` ne sont jamais envoyés sur GitHub.
 | `npm run db:seed` | (re)charge les données publiques de départ |
 | `npm run collecte` | un passage de collecte : BCE, Statistique Canada, Journal officiel, Légifrance |
 | `npm run verifier:piste` | vérifie les identifiants de l'API Légifrance |
+
+### Sur le serveur
+
+À lancer dans une session SSH (`ssh <utilisateur>@<serveur>`). Les commandes qui en ont besoin demandent elles-mêmes les
+droits d'administrateur.
+
+| Commande | Effet |
+|---|---|
+| `site-etat` | état général : version en ligne, conteneurs, tâches programmées, dernières sauvegardes, espace disque |
+| `site-version` | version en ligne et versions publiées disponibles |
+| `sudo site-version vX.Y.Z` | **installe tout de suite une version publiée sur GitHub** (mise à jour sans attendre la nuit, ou retour à une version précédente) ; sauvegarde avant, retour automatique en cas de problème |
+| `site-sauvegarde` | sauvegarde immédiate, déposée dans `~/sauvegardes` pour être téléchargée (voir ci-dessous) |
+| `site-visites` | dernières pages vues et réseaux les plus actifs, adresses IP tronquées (`site-visites 100 7` : 100 pages sur 7 jours) |
+| `site-mdp-admin` | choisir un nouveau mot de passe pour l'espace admin (en cas d'oubli) |
+| `sudo site-debloquer` | lever les blocages de 48 h (après trop d'échecs de connexion à l'espace admin) |
+
+Tâches automatiques, lançables aussi à la main :
+
+| Commande | Effet | Automatiquement |
+|---|---|---|
+| `sudo /usr/local/lib/mettre-a-jour.sh` | installe la dernière version publiée | chaque nuit, 04 h 17 UTC |
+| `sudo /usr/local/lib/sauvegarder.sh` | sauvegarde de la base, gardée sur le serveur (7 copies) | chaque nuit, 03 h 47 UTC |
+| `sudo /usr/local/lib/collecte.sh` | collecte des données (BCE, Statistique Canada, Journal officiel, Légifrance), site et aperçu | chaque jour, 16 h 37 UTC |
+| `sudo /usr/local/lib/apercu.sh` | met à jour l'aperçu si une version « en préparation » est disponible | toutes les 5 minutes |
+
+Journaux : `sudo tail -20 /var/log/indemnite-maj.log` (ou `collecte`, `apercu`, `sauvegarde` à la place de `maj`).
+
+### Télécharger une sauvegarde sur son ordinateur
+
+Depuis l'ordinateur (PowerShell, Terminal…), deux commandes : la première fait une sauvegarde à l'instant sur le serveur,
+la seconde la télécharge dans le dossier choisi.
+
+```
+ssh -t <utilisateur>@<serveur> site-sauvegarde
+scp "<utilisateur>@<serveur>:sauvegardes/*" <dossier de votre ordinateur>
+```
+
+La copie contient la base du site (`site.sql.gz`), les statistiques (`stats.sql.gz`), la configuration du serveur
+(`env`, avec ses secrets) et les réglages du site (`site.json`) : à garder en lieu sûr.
+
+### Mettre en ligne une nouvelle version sans attendre la nuit
+
+1. Publier la version sur GitHub : onglet **Actions** → « Tests et images » → **Run workflow** (branche `dev`, numéro de
+   version facultatif, sinon celui de `package.json`).
+2. Sur le serveur : `sudo site-version vX.Y.Z`.
 
 ## 4. Organisation du code
 
