@@ -232,6 +232,7 @@ function spark(points,{w=520,h=150,inv=false,label='',suffix='',markers=[]}={}){
 const V = {};
 V.accueil = ()=>`
   <section class="hero view"><h1>Le guide pratique des volontaires internationaux</h1>
+  <p class="muted" style="margin:0;max-width:70ch">Indemnité VIE et VIA (volontariat international en entreprise et en administration) : montant dans chaque pays, évolution depuis 2014 et pouvoir d’achat sur place, d’après les arrêtés du Journal officiel, la Banque centrale européenne et les instituts statistiques. Gratuit, sans compte.</p>
 </section>
   <section class="cards" aria-label="Modules">
     <a class="mod on" href="/pouvoir-achat"><h3>Pouvoir d’achat VI</h3><span class="muted small">Indemnité actuelle, pouvoir d'achat, historique, grille des indemnités.</span></a>
@@ -247,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.7.1', d:'', items:['Accueil : présentation plus claire de ce que propose le site']},
   {v:'1.7.0', d:'', items:['Chaque page a désormais sa propre adresse (par ex. /historique ou /grille-indemnites) : plus facile à partager et à retrouver dans les moteurs de recherche, avec un aperçu soigné quand on partage un lien']},
   {v:'1.6.0', d:'', items:['Sécurité renforcée : la carte, le PDF et la vérification anti-robot sont servis par le site lui-même (plus aucun service tiers), protections supplémentaires de l’espace admin et du serveur']},
   {v:'1.5.0', d:'', items:['Page « Dons pour l’hébergement » : coûts affichés tels qu’ils ont été payés, en $ CA et en $ US (sans conversion), augmentant chaque mois']},

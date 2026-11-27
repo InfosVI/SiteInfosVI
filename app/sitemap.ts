@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { PAGES } from '@/lib/pages';
+import { PAGES_INDEXEES } from '@/lib/pages';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,5 +7,5 @@ export const dynamic = 'force-dynamic';
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
   const maintenant = new Date();
-  return PAGES.map(p => ({ url: base + (p.chemin === '/' ? '/' : p.chemin), lastModified: maintenant, changeFrequency: p.frequence, priority: p.priorite }));
+  return PAGES_INDEXEES.map(p => ({ url: base + (p.chemin === '/' ? '/' : p.chemin), lastModified: maintenant, changeFrequency: p.frequence, priority: p.priorite }));
 }

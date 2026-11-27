@@ -27,6 +27,8 @@ export function metadonnees(page: Page): Metadata {
     metadataBase: new URL(base()),
     title: titre, description: page.description,
     alternates: { canonical: page.chemin },
+    // Pages secondaires : pas dans les résultats de recherche (les liens restent suivis)
+    ...(page.indexer === false ? { robots: { index: false, follow: true } } : {}),
     openGraph: { type: 'website', locale: 'fr_FR', siteName: site.nom, title: titre, description: page.description, url: page.chemin,
       images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: page.titre }] },
     twitter: { card: 'summary_large_image', title: titre, description: page.description, images: ['/opengraph-image'] },
