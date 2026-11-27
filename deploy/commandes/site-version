@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Remettre une version précise du site (ex. site-version v1.4.1), ou afficher la version en ligne (sans argument)
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"   # la configuration est lisible par root seulement
+set -euo pipefail
+cd /opt/indemnite
+if [ $# -eq 0 ]; then grep '^IMAGE_TAG=' .env | cut -d"'" -f2; git tag -l 'v*' --sort=-v:refname | head -10 | sed 's/^/  disponible : /'; exit 0; fi
+exec /usr/local/lib/mettre-a-jour.sh "$1"

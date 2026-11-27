@@ -1,0 +1,70 @@
+# Porte d'entrée du site : https automatique (certificats Let's Encrypt renouvelés seuls)
+(securite) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+		-X-Powered-By
+	}
+	encode zstd gzip
+}
+
+# Journal des visites du site public : adresses IP TRONQUÉES (IPv4 /16, IPv6 /32), sans cookie ni en-tête
+# d'authentification ; un fichier par jour, 30 jours gardés (logrotate du serveur). Lecture : « site-visites ».
+(journal_visites) {
+	log {
+		output file /var/log/caddy/acces.log {
+			roll_disabled
+		}
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip ip_mask {
+					ipv4 16
+					ipv6 32
+				}
+				request>client_ip ip_mask {
+					ipv4 16
+					ipv6 32
+				}
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+				resp_headers delete
+			}
+		}
+	}
+}
+
+{$DOMAINE} {
+	import securite
+	import journal_visites
+	# Mesure d'audience : script et envoi des visites par le domaine du site lui-même (aucun domaine tiers)
+	handle_path /u/* {
+		reverse_proxy umami:3000
+	}
+	reverse_proxy site:3000
+}
+
+www.{$DOMAINE} {
+	redir https://{$DOMAINE}{uri} permanent
+}
+
+# Statistiques de visite (Umami) : protégées par la connexion d'Umami ; invisibles des moteurs de recherche
+stats.{$DOMAINE} {
+	import securite
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy umami:3000
+}
+
+# Aperçu privé de la version en préparation : identifiant + mot de passe, invisible des moteurs de recherche
+apercu.{$DOMAINE} {
+	import securite
+	header X-Robots-Tag "noindex, nofollow"
+	basic_auth {
+		{$APERCU_UTILISATEUR} {$APERCU_MOT_DE_PASSE_HASH}
+	}
+	reverse_proxy apercu:3000
+}

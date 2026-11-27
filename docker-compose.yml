@@ -1,0 +1,143 @@
+# Conteneurs du site sur le serveur. Les secrets viennent du fichier .env (créé par l'installation, jamais dans Git).
+# Images construites par GitHub Actions ; IMAGE_TAG = version en ligne (ex. v1.0.0), APERCU_TAG = version en préparation.
+name: indemnite
+
+x-journaux: &journaux
+  logging:
+    driver: json-file
+    options: { max-size: 10m, max-file: '3' }
+
+x-site: &site
+  <<: *journaux
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: [no-new-privileges:true]
+  volumes:
+    - ./config-site:/app/config-site:ro   # réglages de cette installation (nom, hébergeur, dons) : hors du dépôt
+  networks: [web, donnees]
+  depends_on:
+    base: { condition: service_healthy }
+
+services:
+  # Porte d'entrée : https automatique, seul conteneur ouvert sur Internet
+  caddy:
+    <<: *journaux
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAINE: ${DOMAINE}
+      APERCU_UTILISATEUR: ${APERCU_UTILISATEUR}
+      APERCU_MOT_DE_PASSE_HASH: ${APERCU_MOT_DE_PASSE_HASH}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - /var/log/indemnite-visites:/var/log/caddy   # journal des visites (IP tronquées), lu par « site-visites »
+    networks: [web]
+    mem_limit: 128m
+
+  # Le site public + espace admin (version en ligne)
+  site:
+    <<: *site
+    image: ghcr.io/${GITHUB_PROPRIETAIRE}/indemnite-site:${IMAGE_TAG:-latest}
+    environment:
+      DATABASE_URL: postgres://site:${MDP_BASE_SITE}@base:5432/site
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      SESSION_SECRET: ${SESSION_SECRET}
+      SITE_URL: https://${DOMAINE}
+      APP_VERSION: ${IMAGE_TAG:-dev}
+      PISTE_CLIENT_ID: ${PISTE_CLIENT_ID:-}
+      PISTE_CLIENT_SECRET: ${PISTE_CLIENT_SECRET:-}
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
+      UMAMI_SITE_UTILISATEUR: ${UMAMI_SITE_UTILISATEUR:-}
+      UMAMI_SITE_MDP: ${UMAMI_SITE_MDP:-}
+    mem_limit: 400m
+
+  # Même site, version « en préparation » (branche dev), sur apercu.<domaine>, avec sa propre base
+  apercu:
+    <<: *site
+    image: ghcr.io/${GITHUB_PROPRIETAIRE}/indemnite-site:${APERCU_TAG:-preparation}
+    environment:
+      DATABASE_URL: postgres://apercu:${MDP_BASE_APERCU}@base:5432/apercu
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      SESSION_SECRET: ${SESSION_SECRET_APERCU}
+      SITE_URL: https://apercu.${DOMAINE}
+      APP_VERSION: ${APERCU_TAG:-preparation}
+      PISTE_CLIENT_ID: ${PISTE_CLIENT_ID:-}
+      PISTE_CLIENT_SECRET: ${PISTE_CLIENT_SECRET:-}
+    mem_limit: 400m
+
+  # Base de données PostgreSQL : aucun port ouvert, uniquement sur le réseau interne
+  base:
+    <<: *journaux
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${MDP_BASE_ADMIN}
+      MDP_BASE_SITE: ${MDP_BASE_SITE}
+      MDP_BASE_APERCU: ${MDP_BASE_APERCU}
+      MDP_BASE_STATS: ${MDP_BASE_STATS:-}
+    volumes:
+      - base_data:/var/lib/postgresql/data
+      - ./deploy/initdb:/docker-entrypoint-initdb.d:ro
+    networks: [donnees]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 256m
+
+  # Mesure d'audience (Umami) : statistiques de visite, sans cookie publicitaire, aucune donnée envoyée à un tiers.
+  # Démarrée par « deploy/installer-stats.sh » (une fois). Joignable uniquement par Caddy (stats.<domaine> et /u/ du site)
+  # et, pour l'installation, depuis le serveur lui-même (127.0.0.1:3001).
+  umami:
+    <<: *journaux
+    image: ghcr.io/umami-software/umami:3.5.0
+    profiles: [stats]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://stats:${MDP_BASE_STATS:-}@base:5432/stats
+      APP_SECRET: ${UMAMI_APP_SECRET:-}
+      DISABLE_TELEMETRY: '1'
+      DISABLE_UPDATES: '1'
+      CLIENT_IP_HEADER: x-forwarded-for
+    ports: ["127.0.0.1:3001:3000"]
+    networks: [web, donnees]
+    depends_on:
+      base: { condition: service_healthy }
+    mem_limit: 512m
+
+  # Tâches lancées à heure fixe par le serveur (docker compose run --rm …), puis arrêtées
+  collecte:
+    image: ghcr.io/${GITHUB_PROPRIETAIRE}/indemnite-outils:${IMAGE_TAG:-latest}
+    profiles: [taches]
+    environment:
+      DATABASE_URL: postgres://site:${MDP_BASE_SITE}@base:5432/site
+      PISTE_CLIENT_ID: ${PISTE_CLIENT_ID}
+      PISTE_CLIENT_SECRET: ${PISTE_CLIENT_SECRET}
+    networks: [donnees, sortie]
+    command: ["npx", "tsx", "scripts/collecte.ts"]
+    mem_limit: 512m
+
+  outils:
+    image: ghcr.io/${GITHUB_PROPRIETAIRE}/indemnite-outils:${IMAGE_TAG:-latest}
+    profiles: [taches]
+    environment:
+      DATABASE_URL: postgres://site:${MDP_BASE_SITE}@base:5432/site
+    networks: [donnees]
+    mem_limit: 512m
+
+networks:
+  web: {}
+  donnees: { internal: true }   # pas d'accès à Internet depuis ce réseau
+  sortie: {}                    # accès sortant pour la collecte (BCE, Journal officiel, Légifrance…)
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
+  base_data: {}

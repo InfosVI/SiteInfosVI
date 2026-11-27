@@ -1,0 +1,8 @@
+[Unit]
+Description=Mise en ligne automatique de la nouvelle version du site
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/mettre-a-jour.sh

@@ -1,0 +1,16 @@
+#!/bin/sh
+# Filet de sécurité : refuse tout envoi de documents personnels ou de secrets.
+fail=0
+for f in $(git diff --cached --name-only --diff-filter=ACMR); do
+  lf=$(printf '%s' "$f" | tr 'A-Z' 'a-z')
+  case "$lf" in
+    *.pdf|*bulletin*|*bareme*|*ife_*|*.local.md|.env|.env.*|*.key|*.pem)
+      [ "$lf" = ".env.example" ] && continue
+      echo "REFUSÉ : $f (document personnel ou secret)"; fail=1 ;;
+  esac
+done
+# Valeurs de secrets écrites en clair (ex. PISTE_CLIENT_SECRET=xxxx)
+if git diff --cached -U0 | grep -E '^\+.*(SECRET|PASSWORD|API_KEY|CLIENT_ID)[A-Z_]*[ ]*=[ ]*[A-Za-z0-9-]{12,}' >/dev/null; then
+  echo "REFUSÉ : une valeur de secret semble écrite en clair (à mettre dans .env, pas dans le code)"; fail=1
+fi
+exit $fail

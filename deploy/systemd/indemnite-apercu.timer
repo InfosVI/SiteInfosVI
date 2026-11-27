@@ -1,0 +1,10 @@
+[Unit]
+Description=Mise à jour de l’aperçu privé (minuteur)
+
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+RandomizedDelaySec=0
+
+[Install]
+WantedBy=timers.target

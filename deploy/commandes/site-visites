@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Visites récentes du site public (journal du serveur, adresses IP TRONQUÉES : on voit le réseau, jamais la personne).
+# Usage : site-visites            → 40 dernières pages vues + réseaux les plus actifs (aujourd'hui)
+#         site-visites 100        → 100 dernières pages vues
+#         site-visites 40 7       → sur les 7 derniers jours (fichiers archivés compris)
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"   # journal lisible par root seulement
+set -euo pipefail
+N="${1:-40}"; JOURS="${2:-1}"
+DOSSIER=/var/log/indemnite-visites
+[ -f "$DOSSIER/acces.log" ] || { echo "Pas encore de journal des visites ($DOSSIER/acces.log)."; exit 0; }
+find "$DOSSIER" -name 'acces.log*' -mtime -"$JOURS" | sort -r | while read -r f; do
+  case "$f" in *.gz) zcat "$f" ;; *) cat "$f" ;; esac
+done | python3 - "$N" <<'PY'
+import json, sys, collections, datetime
+n = int(sys.argv[1])
+STATIQUE = ('/_next/', '/u/', '/altcha.js', '/app.js', '/favicon', '/icon', '/countries-50m.json', '/robots.txt')
+pages, reseaux, agents = [], collections.Counter(), {}
+for ligne in sys.stdin:
+    try: e = json.loads(ligne)
+    except ValueError: continue
+    r = e.get('request', {}); uri = r.get('uri', '')
+    if uri.startswith('/api/') or any(uri.startswith(s) for s in STATIQUE): continue
+    ip = r.get('client_ip') or r.get('remote_ip') or '?'
+    ua = (r.get('headers', {}).get('User-Agent') or ['—'])[0]
+    t = datetime.datetime.fromtimestamp(e.get('ts', 0), datetime.timezone.utc)
+    pages.append((t, ip, r.get('method', ''), uri, e.get('status', ''), ua))
+    reseaux[ip] += 1; agents.setdefault(ip, ua)
+pages.sort()
+print(f"== {min(n, len(pages))} dernières pages vues (heure UTC · réseau · statut · page · navigateur annoncé)")
+for t, ip, m, uri, st, ua in pages[-n:]:
+    print(f"{t:%d/%m %H:%M:%S}  {ip:<16} {st:<4} {m} {uri[:40]:<40}  {ua[:70]}")
+print("\n== Réseaux les plus actifs (adresse tronquée · pages vues · navigateur annoncé)")
+for ip, c in reseaux.most_common(10):
+    print(f"{ip:<16} {c:>5}   {agents[ip][:80]}")
+print("\nPour savoir à qui appartient un réseau : https://ipinfo.io/<adresse> (ex. 52.71.0.0 : Amazon).")
+print("Robot probable : beaucoup de pages en quelques secondes, ou navigateur annoncé « bot », « curl », « python »…")
+PY

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Lève tous les blocages de 48 h en cours (à utiliser si l'administrateur s'est bloqué lui-même)
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"   # la configuration est lisible par root seulement
+set -euo pipefail
+cd /opt/indemnite
+docker compose exec -T base psql -U postgres -d site -c "DELETE FROM blocages; DELETE FROM tentatives;"
+echo "Blocages levés."

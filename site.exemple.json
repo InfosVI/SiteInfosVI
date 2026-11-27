@@ -1,0 +1,18 @@
+{
+  "nom": "Mon site VI",
+  "sousTitre": "Infos publiques sur les volontaires internationaux",
+  "description": "Le guide pratique des volontaires internationaux : indemnité VIE / VIA et pouvoir d'achat, à partir de données publiques.",
+  "dons": "https://liberapay.com/mon-profil/",
+  "hebergeur": {
+    "nom": "Nom de l'hébergeur",
+    "adresse": "Adresse postale de l'hébergeur",
+    "telephone": "Téléphone de l'hébergeur",
+    "lieu": "Serveur situé à …",
+    "lien": "https://exemple.org/mentions-legales"
+  },
+  "hebergement": {
+    "debut": "2026-01-01",
+    "serveur": { "nom": "Serveur (offre, lieu)", "ht": 10.0, "taxes": 0.15, "dev": "CAD" },
+    "domaine": { "nom": "Nom de domaine", "ht": 12.0, "taxes": 0, "dev": "USD" }
+  }
+}

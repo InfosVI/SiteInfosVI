@@ -1,0 +1,21 @@
+# Journaux des tâches du site : un fichier par semaine, 8 semaines gardées, compressés
+/var/log/indemnite-*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 root adm
+}
+
+# Journal des visites (adresses IP tronquées) : un fichier par jour, 30 jours gardés puis effacés
+/var/log/indemnite-visites/acces.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

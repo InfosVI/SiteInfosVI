@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# État du site : conteneurs, tâches programmées, dernières sauvegardes, espace disque
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"   # la configuration est lisible par root seulement
+cd /opt/indemnite
+echo "== Version en ligne : $(grep '^IMAGE_TAG=' .env | cut -d"'" -f2)"
+echo "== Conteneurs"; docker compose ps --format 'table {{.Service}}	{{.Status}}'
+echo "== Tâches programmées"; systemctl list-timers 'indemnite-*' --no-pager | head -6
+echo "== Dernières sauvegardes"; ls -1t /var/backups/indemnite/site-*.sql.gz 2>/dev/null | head -3
+echo "== Disque"; df -h / | tail -1

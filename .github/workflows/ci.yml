@@ -1,0 +1,127 @@
+# Tests automatiques et fabrication des images du site.
+# - Chaque envoi sur « dev » : tests, puis images « preparation » (l'aperçu privé se met à jour tout seul).
+# - Chaque jour à 04 h 07 UTC (ou à la demande) : s'il y a du nouveau sur « dev » et que les tests passent,
+#   « main » rejoint « dev », une version vX.Y.Z est créée et les images de production sont publiées
+#   (le serveur les installe à 04 h 17 UTC).
+name: Tests et images
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+  schedule:
+    - cron: '7 4 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version à publier (ex. v1.0.0) ; vide = incrément automatique'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: dev }
+      - uses: actions/setup-node@v4
+        with: { node-version: 26, cache: npm }
+      - run: npm ci --ignore-scripts && npm rebuild esbuild
+      - name: Contrôle des types
+        run: npx tsc --noEmit
+      - name: Tests
+        run: npx vitest run
+      - name: Construction du site
+        run: npx next build
+        env: { NEXT_TELEMETRY_DISABLED: '1' }
+      - name: Configuration de Caddy valide (porte d'entrée du site)
+        run: |
+          mkdir -p /tmp/journal-caddy
+          H=$(docker run --rm caddy:2.10-alpine caddy hash-password --plaintext essai)
+          docker run --rm -e DOMAINE=exemple.test -e APERCU_UTILISATEUR=essai -e APERCU_MOT_DE_PASSE_HASH="$H"             -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" -v /tmp/journal-caddy:/var/log/caddy             caddy:2.10-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: Aucun document personnel ni secret dans le dépôt
+        run: |
+          if git ls-files | grep -iE '\.pdf$|bulletin|bareme|ife_|\.local\.md$|(^|/)\.env$'; then echo "Fichier interdit trouvé"; exit 1; fi
+
+  apercu:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+      - name: Nom des images (en minuscules)
+        run: echo "IMG=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/indemnite" >> "$GITHUB_ENV"
+      - uses: docker/build-push-action@v6
+        with: { context: ., target: site, push: true, tags: '${{ env.IMG }}-site:preparation', build-args: 'GIT_SHA=${{ github.sha }}', cache-from: type=gha, cache-to: 'type=gha,mode=max' }
+      - uses: docker/build-push-action@v6
+        with: { context: ., target: outils, push: true, tags: '${{ env.IMG }}-outils:preparation', cache-from: type=gha }
+
+  version:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions: { contents: write, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: dev, fetch-depth: 0 }
+      - name: Du nouveau depuis la dernière version ?
+        id: v
+        run: |
+          git fetch -q origin main || true
+          if git rev-parse -q --verify origin/main >/dev/null && [ "$(git rev-parse origin/main)" = "$(git rev-parse HEAD)" ] && [ -z "${{ inputs.version }}" ]; then
+            echo "nouveau=non" >> "$GITHUB_OUTPUT"; echo "Rien de nouveau sur dev."; exit 0; fi
+          DERNIERE=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ -n "${{ inputs.version }}" ]; then V="${{ inputs.version }}"
+          elif [ -z "$DERNIERE" ]; then V="v$(node -p "require('./package.json').version")"   # première version : celle prévue dans le code
+          else
+            # Numéro prévu dans le code (package.json, celui des nouveautés) s'il est plus récent que la dernière version ;
+            # sinon, version suivante (+1 au chiffre du milieu)
+            PREVU="v$(node -p "require('./package.json').version")"
+            PLUS=$( (echo "$DERNIERE"; echo "$PREVU") | sort -V | tail -1)
+            if [ "$PREVU" != "$DERNIERE" ] && [ "$PLUS" = "$PREVU" ]; then V="$PREVU"
+            else IFS=. read -r MA MI PA <<< "${DERNIERE#v}"; V="v$MA.$((MI+1)).0"; fi
+          fi
+          echo "nouveau=oui" >> "$GITHUB_OUTPUT"; echo "version=$V" >> "$GITHUB_OUTPUT"; echo "Nouvelle version : $V"
+      - name: main rejoint dev et la version est étiquetée
+        if: steps.v.outputs.nouveau == 'oui'
+        run: |
+          git config user.name "Publication automatique"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git push -f origin HEAD:refs/heads/main
+          git tag -a "${{ steps.v.outputs.version }}" -m "Version ${{ steps.v.outputs.version }}"
+          git push origin "${{ steps.v.outputs.version }}"
+      - uses: docker/setup-buildx-action@v3
+        if: steps.v.outputs.nouveau == 'oui'
+      - uses: docker/login-action@v3
+        if: steps.v.outputs.nouveau == 'oui'
+        with: { registry: ghcr.io, username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+      - name: Nom des images (en minuscules)
+        if: steps.v.outputs.nouveau == 'oui'
+        run: echo "IMG=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/indemnite" >> "$GITHUB_ENV"
+      - uses: docker/build-push-action@v6
+        if: steps.v.outputs.nouveau == 'oui'
+        with:
+          context: .
+          target: site
+          push: true
+          tags: '${{ env.IMG }}-site:${{ steps.v.outputs.version }},${{ env.IMG }}-site:latest'
+          build-args: APP_VERSION=${{ steps.v.outputs.version }}
+          cache-from: type=gha
+      - uses: docker/build-push-action@v6
+        if: steps.v.outputs.nouveau == 'oui'
+        with:
+          context: .
+          target: outils
+          push: true
+          tags: '${{ env.IMG }}-outils:${{ steps.v.outputs.version }},${{ env.IMG }}-outils:latest'
+          cache-from: type=gha

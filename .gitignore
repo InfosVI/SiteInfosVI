@@ -1,0 +1,37 @@
+# Réglages propres à une installation (nom du site, hébergeur, dons, coûts) : jamais dans le dépôt
+config-site/
+
+# Secrets : jamais dans le dépôt
+.env
+.env.*
+!.env.example
+*.local.md
+*.key
+*.pem
+id_*
+
+# Documents personnels : jamais dans le dépôt
+*.pdf
+*bulletin*
+*bareme*
+*BAREME*
+*ife_*
+
+# Dépendances et fichiers générés
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+
+# Widget ALTCHA copié depuis node_modules au démarrage et à la construction
+public/altcha.js
+
+# Base locale de développement
+.data/
+
+# Fichiers temporaires de TypeScript
+*.tsbuildinfo

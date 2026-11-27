@@ -1,0 +1,14 @@
+node_modules
+.next
+.data
+.env
+.env.*
+!.env.example
+*.local.md
+*.pdf
+.git
+.githooks
+coverage
+tests
+docs
+config-site

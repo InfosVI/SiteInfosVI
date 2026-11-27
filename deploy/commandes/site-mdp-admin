@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Choisir un nouveau mot de passe pour l'espace admin (site et aperçu). Le mot de passe n'est jamais écrit en clair :
+# seule son empreinte Argon2 est enregistrée dans /opt/indemnite/.env.
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"   # la configuration est lisible par root seulement
+set -euo pipefail
+cd /opt/indemnite
+set -a; . ./.env; set +a
+while :; do
+  read -r -s -p "Nouveau mot de passe de l'espace admin (12 caractères minimum) : " MDP </dev/tty; echo
+  [ ${#MDP} -ge 12 ] || { echo "Trop court."; continue; }
+  read -r -s -p "Retapez-le : " MDP2 </dev/tty; echo
+  [ "$MDP" = "$MDP2" ] && break || echo "Les deux saisies sont différentes."
+done
+HASH=$(docker run --rm -e MDP="$MDP" "ghcr.io/$GITHUB_PROPRIETAIRE/indemnite-outils:$IMAGE_TAG" \
+  node -e "require('@node-rs/argon2').hash(process.env.MDP).then(h=>process.stdout.write(h))")
+unset MDP MDP2
+[[ "$HASH" == \$argon2id\$* ]] || { echo "Échec du calcul de l'empreinte : rien n'est modifié."; exit 1; }
+python3 - "$HASH" <<'PY'
+import re,sys
+p='/opt/indemnite/.env'; s=open(p).read()
+s=re.sub(r"^ADMIN_PASSWORD_HASH=.*$", "ADMIN_PASSWORD_HASH='"+sys.argv[1]+"'", s, flags=re.M)
+open(p,'w').write(s)
+PY
+docker compose up -d site apercu >/dev/null
+docker compose exec -T base psql -U postgres -d site -c "DELETE FROM tentatives; DELETE FROM blocages;" >/dev/null
+echo "Mot de passe de l'espace admin changé. Email de connexion : $ADMIN_EMAIL"

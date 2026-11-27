@@ -1,0 +1,8 @@
+[Unit]
+Description=Sauvegarde nocturne de la base
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/sauvegarder.sh
