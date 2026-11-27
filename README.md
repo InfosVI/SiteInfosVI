@@ -158,6 +158,25 @@ scp "<utilisateur>@<serveur>:sauvegardes/*" <dossier de votre ordinateur>
 La copie contient la base du site (`site.sql.gz`), les statistiques (`stats.sql.gz`), la configuration du serveur
 (`env`, avec ses secrets) et les réglages du site (`site.json`) : à garder en lieu sûr.
 
+### Changer l'adresse du dépôt GitHub (renommage, autre compte ou organisation)
+
+Après avoir renommé le dépôt ou l'organisation sur GitHub (ou déplacé le dépôt), deux réglages du serveur doivent suivre :
+`GITHUB_PROPRIETAIRE` (compte ou organisation, **en minuscules** : il donne l'adresse des images `ghcr.io/<compte>/…`)
+et `DEPOT` (adresse du code). Sur le serveur, en remplaçant `<compte>` et `<dépôt>` :
+
+```
+cd /opt/indemnite
+sudo sed -i "s|^GITHUB_PROPRIETAIRE=.*|GITHUB_PROPRIETAIRE='<compte>'|; s|^DEPOT=.*|DEPOT='https://github.com/<compte>/<dépôt>.git'|" .env
+sudo git remote set-url origin https://github.com/<compte>/<dépôt>.git
+sudo git fetch -q --tags --prune --prune-tags origin
+site-version
+```
+
+`site-version` doit lister les versions publiées du dépôt. Les images restent publiques après un renommage (vérifier
+dans GitHub → l'organisation → **Packages** que `indemnite-site` et `indemnite-outils` sont « Public »).
+
+Sur l'ordinateur de développement : `git remote set-url origin https://github.com/<compte>/<dépôt>.git`.
+
 ### Mettre en ligne une nouvelle version sans attendre la nuit
 
 1. Publier la version sur GitHub : onglet **Actions** → « Tests et images » → **Run workflow** (branche `dev`, numéro de
