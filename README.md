@@ -132,7 +132,18 @@ Tâches automatiques, lançables aussi à la main :
 | `sudo /usr/local/lib/collecte.sh` | collecte des données (BCE, Statistique Canada, Journal officiel, Légifrance), site et aperçu | chaque jour, 16 h 37 UTC |
 | `sudo /usr/local/lib/apercu.sh` | met à jour l'aperçu si une version « en préparation » est disponible | toutes les 5 minutes |
 
-Journaux : `sudo tail -20 /var/log/indemnite-maj.log` (ou `collecte`, `apercu`, `sauvegarde` à la place de `maj`).
+### Vérifier les dernières mises à jour
+
+| Commande (sur le serveur) | Ce qu'elle montre |
+|---|---|
+| `site-version` | version installée sur le vrai site (première ligne) |
+| `sudo tail -10 /var/log/indemnite-maj.log` | mises à jour du **vrai site** : « Nouvelle version vX.Y.Z », « Version vX.Y.Z en ligne », « Déjà à jour », ou retour automatique en cas de problème |
+| `sudo tail -10 /var/log/indemnite-apercu.log` | mises à jour de l'**aperçu** : une ligne « Aperçu mis à jour » à chaque nouvelle version en préparation |
+| `sudo tail -10 /var/log/indemnite-collecte.log` | derniers passages de la collecte des données |
+| `sudo tail -10 /var/log/indemnite-sauvegarde.log` | dernières sauvegardes |
+
+Le numéro de version est aussi affiché en bas de chaque page : `vX.Y.Z` sur le vrai site, `vX.Y.Z en préparation · <repère>`
+sur l'aperçu.
 
 ### Télécharger une sauvegarde sur son ordinateur
 
