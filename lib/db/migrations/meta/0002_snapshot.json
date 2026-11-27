@@ -1,0 +1,1096 @@
+{
+  "id": "4166faa0-c7cd-475b-9edd-380ad95d9239",
+  "prevId": "a166ed75-98cd-4688-9f76-caa0c37e2e30",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.arretes": {
+      "name": "arretes",
+      "schema": "",
+      "columns": {
+        "cid": {
+          "name": "cid",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "publie_le": {
+          "name": "publie_le",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signe_le": {
+          "name": "signe_le",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "effet": {
+          "name": "effet",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.blocages": {
+      "name": "blocages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cle": {
+          "name": "cle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jusqua": {
+          "name": "jusqua",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "blocages_cle": {
+          "name": "blocages_cle",
+          "columns": [
+            {
+              "expression": "cle",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.contact_limites": {
+      "name": "contact_limites",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "cle": {
+          "name": "cle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "contact_limites_cle": {
+          "name": "contact_limites_cle",
+          "columns": [
+            {
+              "expression": "cle",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cours_quotidiens": {
+      "name": "cours_quotidiens",
+      "schema": "",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "devise": {
+          "name": "devise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taux": {
+          "name": "taux",
+          "type": "numeric(18, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "cours_quotidiens_date_devise_pk": {
+          "name": "cours_quotidiens_date_devise_pk",
+          "columns": [
+            "date",
+            "devise"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cout_vie": {
+      "name": "cout_vie",
+      "schema": "",
+      "columns": {
+        "zone": {
+          "name": "zone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mois": {
+          "name": "mois",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "indice": {
+          "name": "indice",
+          "type": "numeric(8, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "serie": {
+          "name": "serie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vecteur": {
+          "name": "vecteur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "publie_le": {
+          "name": "publie_le",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "cout_vie_zone_mois_pk": {
+          "name": "cout_vie_zone_mois_pk",
+          "columns": [
+            "zone",
+            "mois"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.historique": {
+      "name": "historique",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "auteur": {
+          "name": "auteur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "origine": {
+          "name": "origine",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "donnee": {
+          "name": "donnee",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cle": {
+          "name": "cle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "periode": {
+          "name": "periode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avant": {
+          "name": "avant",
+          "type": "numeric(18, 6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "apres": {
+          "name": "apres",
+          "type": "numeric(18, 6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brut": {
+          "name": "brut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "controles": {
+          "name": "controles",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enregistree": {
+          "name": "enregistree",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "historique_at": {
+          "name": "historique_at",
+          "columns": [
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.journal": {
+      "name": "journal",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "donnee": {
+          "name": "donnee",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "concerne": {
+          "name": "concerne",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "methode": {
+          "name": "methode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "http": {
+          "name": "http",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ms": {
+          "name": "ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taille": {
+          "name": "taille",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valeurs": {
+          "name": "valeurs",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "etapes": {
+          "name": "etapes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cause": {
+          "name": "cause",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "que_faire": {
+          "name": "que_faire",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "journal_at": {
+          "name": "journal_at",
+          "columns": [
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.messages": {
+      "name": "messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "texte": {
+          "name": "texte",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "messages_at": {
+          "name": "messages_at",
+          "columns": [
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.part_fixe": {
+      "name": "part_fixe",
+      "schema": "",
+      "columns": {
+        "date_effet": {
+          "name": "date_effet",
+          "type": "date",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "indice_majore": {
+          "name": "indice_majore",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "traitement_annuel": {
+          "name": "traitement_annuel",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "montant": {
+          "name": "montant",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_indices": {
+          "name": "source_indices",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_traitement": {
+          "name": "source_traitement",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.part_geo": {
+      "name": "part_geo",
+      "schema": "",
+      "columns": {
+        "zone": {
+          "name": "zone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trimestre": {
+          "name": "trimestre",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "montant": {
+          "name": "montant",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "part_geo_zone_zones_zone_fk": {
+          "name": "part_geo_zone_zones_zone_fk",
+          "tableFrom": "part_geo",
+          "tableTo": "zones",
+          "columnsFrom": [
+            "zone"
+          ],
+          "columnsTo": [
+            "zone"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "part_geo_zone_trimestre_mode_pk": {
+          "name": "part_geo_zone_trimestre_mode_pk",
+          "columns": [
+            "zone",
+            "trimestre",
+            "mode"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.propositions": {
+      "name": "propositions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "zone": {
+          "name": "zone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eff": {
+          "name": "eff",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "saisie": {
+          "name": "saisie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valeur": {
+          "name": "valeur",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pct": {
+          "name": "pct",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ref": {
+          "name": "ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ref_valeur": {
+          "name": "ref_valeur",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'attente'"
+        },
+        "auto": {
+          "name": "auto",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "propositions_groupe": {
+          "name": "propositions_groupe",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "zone",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "eff",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.taux_change": {
+      "name": "taux_change",
+      "schema": "",
+      "columns": {
+        "mois": {
+          "name": "mois",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "devise": {
+          "name": "devise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taux": {
+          "name": "taux",
+          "type": "numeric(18, 6)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nb_jours": {
+          "name": "nb_jours",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "taux_change_mois_devise_pk": {
+          "name": "taux_change_mois_devise_pk",
+          "columns": [
+            "mois",
+            "devise"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tentatives": {
+      "name": "tentatives",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "cookie_id": {
+          "name": "cookie_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ip_hash": {
+          "name": "ip_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sig_hash": {
+          "name": "sig_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "tentatives_at": {
+          "name": "tentatives_at",
+          "columns": [
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.valeurs_admin": {
+      "name": "valeurs_admin",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "donnee": {
+          "name": "donnee",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cle": {
+          "name": "cle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "periode": {
+          "name": "periode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valeur": {
+          "name": "valeur",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.votes": {
+      "name": "votes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "proposition_id": {
+          "name": "proposition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "votant": {
+          "name": "votant",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reseau": {
+          "name": "reseau",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sens": {
+          "name": "sens",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "votes_proposition": {
+          "name": "votes_proposition",
+          "columns": [
+            {
+              "expression": "proposition_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "votes_votant": {
+          "name": "votes_votant",
+          "columns": [
+            {
+              "expression": "votant",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "votes_reseau": {
+          "name": "votes_reseau",
+          "columns": [
+            {
+              "expression": "reseau",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.zones": {
+      "name": "zones",
+      "schema": "",
+      "columns": {
+        "zone": {
+          "name": "zone",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pays": {
+          "name": "pays",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "devise": {
+          "name": "devise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

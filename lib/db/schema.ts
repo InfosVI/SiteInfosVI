@@ -143,3 +143,30 @@ export const contactLimites = pgTable('contact_limites', {
   at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
   cle: text('cle').notNull(),              // c:<cookie haché> ou n:<adresse IP hachée>
 }, (t) => [index('contact_limites_cle').on(t.cle)]);
+
+/** Propositions de la communauté (valeur d'indemnité pas encore publiée ailleurs). Aucune donnée personnelle. */
+export const propositions = pgTable('propositions', {
+  id: serial('id').primaryKey(),
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  type: text('type').notNull(),            // geo | fixe
+  zone: text('zone').notNull(),            // zone d'indemnité, ou TOUTES pour la part fixe
+  eff: text('eff').notNull(),              // mois de prise d'effet AAAA-MM
+  saisie: text('saisie').notNull(),        // eur | pct : ce que le visiteur a saisi (l'autre est calculé)
+  valeur: numeric('valeur').notNull(),     // montant en euros
+  pct: numeric('pct').notNull(),           // variation en % par rapport à la valeur de référence
+  ref: text('ref').notNull(),              // mois de la valeur de référence AAAA-MM
+  refValeur: numeric('ref_valeur').notNull(),
+  source: text('source'),
+  statut: text('statut').notNull().default('attente'),   // attente | validee | rejetee
+  auto: integer('auto').notNull().default(0),            // rejetée automatiquement (une autre a été validée)
+}, (t) => [index('propositions_groupe').on(t.type, t.zone, t.eff)]);
+
+/** Votes sur les propositions : empreintes anonymisées du votant (cookie, réseau), jamais l'adresse IP en clair */
+export const votes = pgTable('votes', {
+  id: serial('id').primaryKey(),
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  propositionId: integer('proposition_id').notNull(),
+  votant: text('votant').notNull(),        // cookie haché
+  reseau: text('reseau').notNull(),        // adresse IP hachée
+  sens: integer('sens').notNull(),         // 1 (positif) ou -1 (négatif)
+}, (t) => [index('votes_proposition').on(t.propositionId), index('votes_votant').on(t.votant), index('votes_reseau').on(t.reseau)]);

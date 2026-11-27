@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.8.0', d:'', items:['Propositions et votes ouverts : proposez une valeur d’indemnité pas encore publiée et votez pour celles des autres (sans compte, avec vérification anti-robot) ; la valeur retenue est validée par l’administrateur']},
   {v:'1.7.1', d:'', items:['Accueil : présentation plus claire de ce que propose le site']},
   {v:'1.7.0', d:'', items:['Chaque page a désormais sa propre adresse (par ex. /historique ou /grille-indemnites) : plus facile à partager et à retrouver dans les moteurs de recherche, avec un aperçu soigné quand on partage un lien']},
   {v:'1.6.0', d:'', items:['Sécurité renforcée : la carte, le PDF et la vérification anti-robot sont servis par le site lui-même (plus aucun service tiers), protections supplémentaires de l’espace admin et du serveur']},
@@ -857,31 +858,16 @@ V.pays = ()=>{
 };
 
 const truncPct=(base,p)=>Math.trunc(base*(1+p/100)*100)/100;
-function initProposals(){
-  if(!st.proposals){
-    // Exemples pour la période en cours (trimestre du 1er oct. 2026), par rapport à la valeur du 1er juil. 2026
-    // input = valeur saisie par le visiteur ('pct' ou 'eur') ; l'autre est calculée par le site
-    const mk=(z,refGeo,val,input,up,down,s='En attente',at='2026-09-25',eff=CURRENT_PERIOD,ref='2026-07')=>{
-      const geo = input==='pct'?truncPct(refGeo,val):val, p = input==='pct'?val:Math.round((val/refGeo-1)*10000)/100;
-      return {type:'geo',eff,z,ref,refGeo,pct:p,geo,input,up,down,s,my:0,at}; };
-    // Part fixe : une seule valeur pour toutes les zones, par rapport à celle en vigueur depuis le 01/01/2024
-    const mkF=(val,input,up,down,s='En attente')=>{ const r=772.87;
-      const geo = input==='pct'?truncPct(r,val):val, p = input==='pct'?val:Math.round((val/r-1)*10000)/100;
-      return {type:'fixe',eff:'2026-11',z:'TOUTES',ref:'2024-01',refGeo:r,pct:p,geo,input,up,down,s,my:0,at:'2026-11-05'}; };
-    const M='CANADA (AUTRES VILLES)', T='CANADA (TORONTO)';
-    st.proposals=[];   // aucune proposition inventée : la liste se remplit avec les propositions envoyées depuis le formulaire
-    // Règle : une seule valeur validée par partie + zone + date → les autres propositions du groupe sont rejetées automatiquement
-    st.proposals.forEach(p=>{ if(p.s==='Validée par un admin') st.proposals.forEach(q=>{ if(q!==p&&q.type===p.type&&q.z===p.z&&q.eff===p.eff&&q.s==='En attente'){ q.s='Rejetée'; q.auto=true; } }); });
-  }
-  st.quota ??= {up:3, down:2};
-}
+function initProposals(){ st.proposals ??= []; st.quota ??= {up:0, down:0}; }
+function appliquerPropositions(d){ if(d&&Array.isArray(d.propositions)){ st.proposals=d.propositions; st.quota=d.quota||st.quota; } }
+async function loadPropositions(){ appliquerPropositions(await getJson('/api/propositions')); }
 function propLine(p,short=false){
   const eur = p.input==='eur';
   const U = 'text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px';
   const vEur = eur ? `<span style="${U}" title="Valeur saisie">${fmt(p.geo)} €</span>` : `${fmt(p.geo)} €`;
   const vPct = eur ? `<span class="${cls(p.pct)}">${pct(p.pct/100)}</span>` : `<span class="${cls(p.pct)}" style="${U}" title="Valeur saisie">${pct(p.pct/100)}</span>`;
   return `<span class="num">${vEur} · ${vPct} <span class="muted">par rapport à la valeur du ${d1(p.ref)} (${fmt(p.refGeo)} €)</span></span>${p.at?`<br><span class="small muted">proposée le ${fmtDay(p.at)}</span>`:''}
-${short?'':`<br><span class="small muted">Valable à partir du ${d1(p.eff)} · ${p.type==='fixe'?'Part fixe, toutes les zones':'Part géographique · '+esc(D.canada[p.z]?.label||p.z)} · exemple</span>`}`;
+${short?'':`<br><span class="small muted">Valable à partir du ${d1(p.eff)} · ${p.type==='fixe'?'Part fixe, toutes les zones':'Part géographique · '+esc(D.canada[p.z]?.label||p.z)}</span>`}`;
 }
 V.proposer = ()=>{
   initProposals();
@@ -1702,24 +1688,19 @@ document.addEventListener('click',e=>{
   const mt=t.closest('[data-mt]'); if(mt){ st.mf.t=mt.dataset.mt; render(); return; }
   const pm=t.closest('[data-pm]'); if(pm){ st.pm=pm.dataset.pm; render(); return; }
   const pt=t.closest('[data-pt]'); if(pt){ st.ptype=pt.dataset.pt; render(); return; }
-  if(t.closest('[data-up],[data-down]') && !captchaOk('vcap')){ toast('Cochez d’abord la vérification anti-robot (au-dessus des propositions).'); return; }
-  if(t.closest('#msgReload')){ loadMsgs(true); render(); return; }
-  const dm=t.closest('[data-delmsg]'); if(dm){ if(!confirm('Supprimer définitivement ce message ?')) return;
-    postJson('/api/admin/messages',{id:+dm.dataset.delmsg},'DELETE').then(r=>{ toast(r.ok?'Message supprimé.':(r.error||'Suppression impossible.')); loadMsgs(true); render(); }).catch(()=>toast('Suppression impossible.')); return; }
-  const vu=t.closest('[data-up]'); if(vu){ const p=st.proposals[+vu.dataset.up];
-    if(p.my===1){ p.up--; p.my=0; st.quota.up++; toast('Vote positif annulé : vous pouvez le placer ailleurs.'); }
-    else if(!p.my && st.quota.up){ p.up++; p.my=1; st.quota.up--; toast(`Vote positif enregistré. Il vous reste ${st.quota.up} vote(s) positif(s) pour 24 h.`); }
-    render(); return; }
-  const vd=t.closest('[data-down]'); if(vd){ const p=st.proposals[+vd.dataset.down];
-    if(p.my===-1){ p.down--; p.my=0; st.quota.down++; toast('Vote négatif annulé : vous pouvez le placer ailleurs.'); }
-    else if(!p.my && st.quota.down){ p.down++; p.my=-1; st.quota.down--; toast(`Vote négatif enregistré. Il vous reste ${st.quota.down} vote(s) négatif(s) pour 24 h.`); }
-    render(); return; }
-  if(t.closest('#resetVotes')){ st.proposals.forEach(p=>{ if(p.my===1){p.up--;st.quota.up++;} if(p.my===-1){p.down--;st.quota.down++;} p.my=0; }); toast('Vos votes ont été réinitialisés.'); render(); return; }
-  const va=t.closest('[data-val]'); if(va){ adminValidate(+va.dataset.val); toast('Valeur validée : les autres propositions de cette partie, zone et date sont rejetées automatiquement.'); render(); return; }
-  const uv=t.closest('[data-unval]'); if(uv){ adminUnvalidate(+uv.dataset.unval); toast('Valeur dévalidée : elle repasse en attente, avec les propositions rejetées automatiquement.'); render(); return; }
-  const ro=t.closest('[data-reopen]'); if(ro){ const p=st.proposals[+ro.dataset.reopen]; p.s='En attente'; p.auto=false; toast('Proposition remise en attente.'); render(); return; }
-  const rj=t.closest('[data-rej]'); if(rj){ const p=st.proposals[+rj.dataset.rej]; p.s='Rejetée'; p.auto=false; toast('Proposition rejetée.'); render(); return; }
-  if(t.closest('#capRun')){ const g=capAll(); toast(g.length?`Nettoyage : ${g.length} proposition(s) retirée(s), voir le journal.`:`Nettoyage : aucun groupe ne dépasse ${MAX_PROPS} propositions.`); render(); return; }
+  const vb=t.closest('[data-up],[data-down]'); if(vb){ const up=vb.dataset.up!=null, p=st.proposals[+(up?vb.dataset.up:vb.dataset.down)];
+    const sens=(up&&p.my===1)||(!up&&p.my===-1)?0:(up?1:-1), body={id:p.id,sens}; if(captchaOk('vcap')) body.altcha=captchaVal('vcap');
+    apiPost('/api/propositions/vote',body).then(d=>{ if(d.blocked) return blockNow(d.until); appliquerPropositions(d);
+      if(d.ok) toast(sens===0?'Vote annulé : vous pouvez le placer ailleurs.':`Vote ${up?'positif':'négatif'} enregistré. Il vous reste ${up?st.quota.up:st.quota.down} vote(s) ${up?'positif':'négatif'}(s) pour 24 h.`);
+      else { toast(d.error||'Vote impossible.'); if(d.captcha) captchaReset('vcap'); } render(); }).catch(()=>toast('Vote impossible : pas de réponse du serveur.')); return; }
+  if(t.closest('#resetVotes')){ fetch('/api/propositions/vote',{method:'DELETE',credentials:'same-origin'}).then(r=>r.json()).then(d=>{ appliquerPropositions(d); toast('Vos votes ont été retirés.'); render(); }).catch(()=>toast('Action impossible : pas de réponse du serveur.')); return; }
+  const moderer=(el,action,msg)=>{ const p=st.proposals[+el.dataset[{valider:'val',devalider:'unval',rejeter:'rej',rouvrir:'reopen'}[action]]];
+    apiPost('/api/admin/propositions',{id:p.id,action}).then(async d=>{ if(d.blocked) return blockNow(d.until); if(d.ok){ await loadPropositions(); await loadAdmin(); toast(msg); } else toast(d.error||'Action impossible.'); render(); }).catch(()=>toast('Action impossible : pas de réponse du serveur.')); };
+  const va=t.closest('[data-val]'); if(va){ moderer(va,'valider','Valeur validée : les autres propositions de cette partie, zone et date sont rejetées automatiquement.'); return; }
+  const uv=t.closest('[data-unval]'); if(uv){ moderer(uv,'devalider','Valeur dévalidée : elle repasse en attente, avec les propositions rejetées automatiquement.'); return; }
+  const ro=t.closest('[data-reopen]'); if(ro){ moderer(ro,'rouvrir','Proposition remise en attente.'); return; }
+  const rj=t.closest('[data-rej]'); if(rj){ moderer(rj,'rejeter','Proposition rejetée.'); return; }
+  if(t.closest('#capRun')){ apiPost('/api/admin/propositions/nettoyer',{}).then(async d=>{ if(d.blocked) return blockNow(d.until); await loadPropositions(); toast(d.retirees?`Nettoyage : ${d.retirees} proposition(s) retirée(s).`:'Nettoyage : rien à retirer.'); render(); }).catch(()=>toast('Nettoyage impossible : pas de réponse du serveur.')); return; }
   const hc=t.closest('[data-hchk]'); if(hc){ const k=hc.dataset.hchk; st.hDet[k]=!st.hDet[k]; render(); return; }
   const hr=t.closest('[data-hrest]'); if(hr){ const h=st.hist[+hr.dataset.hrest];
     apiPost('/api/admin/saisie',{t:h.t,z:h.z,m:h.m,mode:st.mode,value:h.old,src:`retour à la valeur du ${h.at.slice(0,10)}`,rest:true}).then(async r=>{
@@ -1783,7 +1764,14 @@ document.addEventListener('submit',e=>{
       if(r.blocked) return blockNow(r.until); if(r.error){ toast('Erreur : '+r.error); return; }
       await reloadAll();
       toast(r.refused?'Valeur refusée (contrôle '+r.failed+') : rien n’est enregistré, voir l’historique.':`Enregistré : ${fmt(r.value)} €, source : ${src}.`); }); return; }
-  if(e.target.id==='pform'){ toast('Les propositions ouvriront dans une prochaine version du site.'); return; }
+  if(e.target.id==='pform'){ const i=$('#pval'); const v=parseFloat(i.value.replace(',','.')); if(!isFinite(v)){ toast('Indiquez un montant ou une variation.'); return; }
+    if(!captchaOk('pcap')){ toast('Cochez la vérification anti-robot.'); return; }
+    const fx=st.ptype==='fixe', btn=e.target.querySelector('button[type=submit]'); btn.disabled=true;
+    apiPost('/api/propositions',{type:fx?'fixe':'geo', z:fx?'TOUTES':$('#pzone').value, eff:$('#pmonth').value, saisie:st.pm==='pct'?'pct':'eur', valeur:v, source:$('#psrc').value||'', altcha:captchaVal('pcap')}).then(d=>{
+      if(d.blocked) return blockNow(d.until);
+      if(d.ok){ appliquerPropositions(d); toast('Proposition envoyée. Prochaine possible dans 12 h.'); render(); }
+      else toast(d.prochain?`Une seule proposition toutes les 12 heures : prochaine possible le ${new Date(d.prochain).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}.`:(d.error||'Envoi impossible.'));
+    }).catch(()=>toast('Envoi impossible : pas de réponse du serveur.')).finally(()=>{ btn.disabled=false; captchaReset('pcap'); }); return; }
   if(e.target.id==='contact'){ const f=e.target, m=$('#cmsg').value.trim(), em=$('#cmail').value.trim();
     if(!m){ toast('Écrivez votre message.'); return; }
     if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ toast('Adresse email non valide (ou laissez le champ vide).'); return; }
@@ -1807,7 +1795,7 @@ function applyData(j,h){ D=j; H=h; CURRENT_PERIOD=j.currentPeriod;
 async function loadAdmin(){ const s=await getJson('/api/admin/session'); if(s.blockedUntil) return blockNow(s.blockedUntil);
   st.admin=!!s.admin; if(!st.admin){ st.hist=null; JL=null; return; }
   [JL, st.hist]=await Promise.all([getJson('/api/admin/journal'), getJson('/api/admin/historique')]); st.apiRowsC=null; st.curU=null; }
-async function reloadAll(){ const [j,h]=await Promise.all([getJson('/api/data'),getJson('/api/histo')]); applyData(j,h); await loadAdmin(); render(); }
+async function reloadAll(){ const [j,h]=await Promise.all([getJson('/api/data'),getJson('/api/histo')]); applyData(j,h); await loadPropositions().catch(()=>{}); await loadAdmin(); render(); }
 Promise.all([getJson('/api/data'), getJson('/api/histo')])
-  .then(async ([j,h])=>{ applyData(j,h); initProposals(); await loadAdmin().catch(()=>{}); render(); })
+  .then(async ([j,h])=>{ applyData(j,h); initProposals(); await loadPropositions().catch(()=>{}); await loadAdmin().catch(()=>{}); render(); })
   .catch(e=>{ if(e&&e.blocked) return blockNow(e.blocked.until); console.error(e); $('#app').innerHTML='<p>Impossible de charger les données. Réessayez dans un instant.</p>'; });

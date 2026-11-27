@@ -10,6 +10,7 @@ import { collectStatcan } from '../lib/collect/statcan';
 import { collectJo } from '../lib/collect/jo';
 import { collectLegifrance } from '../lib/collect/legifrance';
 import { nettoyerContact } from '../lib/contact';
+import { nettoyerPropositions } from '../lib/propositions';
 
 async function main() {
   try { process.loadEnvFile('.env'); } catch { /* sur le serveur, la configuration vient de l'environnement du conteneur */ }
@@ -21,6 +22,8 @@ async function main() {
   }
   // Messages du formulaire de contact : effacés après 60 jours
   await nettoyerContact();
+  // Propositions : rejetées depuis plus de 3 mois, en attente depuis plus de 6 mois, 7 au plus par mois + partie + zone
+  console.log(`Propositions retirées : ${await nettoyerPropositions()}`);
   // Journal conservé 12 mois
   const db = await getDb() as any;
   await db.delete(schema.journal).where(lt(schema.journal.at, new Date(Date.now() - 365 * 86400_000)));
