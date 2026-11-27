@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.8.1', d:'', items:['Espace admin : les boutons « Supprimer » et « Actualiser » du module Messages fonctionnent de nouveau']},
   {v:'1.8.0', d:'', items:['Propositions et votes ouverts : proposez une valeur d’indemnité pas encore publiée et votez pour celles des autres (sans compte, avec vérification anti-robot) ; la valeur retenue est validée par l’administrateur']},
   {v:'1.7.1', d:'', items:['Accueil : présentation plus claire de ce que propose le site']},
   {v:'1.7.0', d:'', items:['Chaque page a désormais sa propre adresse (par ex. /historique ou /grille-indemnites) : plus facile à partager et à retrouver dans les moteurs de recherche, avec un aperçu soigné quand on partage un lien']},
@@ -1688,6 +1689,9 @@ document.addEventListener('click',e=>{
   const mt=t.closest('[data-mt]'); if(mt){ st.mf.t=mt.dataset.mt; render(); return; }
   const pm=t.closest('[data-pm]'); if(pm){ st.pm=pm.dataset.pm; render(); return; }
   const pt=t.closest('[data-pt]'); if(pt){ st.ptype=pt.dataset.pt; render(); return; }
+  if(t.closest('#msgReload')){ loadMsgs(true); render(); return; }
+  const dm=t.closest('[data-delmsg]'); if(dm){ if(!confirm('Supprimer définitivement ce message ?')) return;
+    postJson('/api/admin/messages',{id:+dm.dataset.delmsg},'DELETE').then(r=>{ toast(r.ok?'Message supprimé.':(r.error||'Suppression impossible.')); loadMsgs(true); render(); }).catch(()=>toast('Suppression impossible.')); return; }
   const vb=t.closest('[data-up],[data-down]'); if(vb){ const up=vb.dataset.up!=null, p=st.proposals[+(up?vb.dataset.up:vb.dataset.down)];
     const sens=(up&&p.my===1)||(!up&&p.my===-1)?0:(up?1:-1), body={id:p.id,sens}; if(captchaOk('vcap')) body.altcha=captchaVal('vcap');
     apiPost('/api/propositions/vote',body).then(d=>{ if(d.blocked) return blockNow(d.until); appliquerPropositions(d);
