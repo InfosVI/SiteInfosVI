@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Sauvegarde immédiate du site, déposée dans ~/sauvegardes de l'administrateur pour être téléchargée sur son ordinateur.
+# Lancée depuis l'ordinateur par outils/recuperer-sauvegarde.ps1 (ou à la main : site-sauvegarde).
+[ "$(id -u)" -eq 0 ] || exec sudo SAUVEGARDE_UTILISATEUR="$(id -un)" "$0" "$@"
+set -euo pipefail
+/usr/local/lib/sauvegarder.sh manuelle
+echo "Sauvegarde prête : $(cat "$(getent passwd "${SAUVEGARDE_UTILISATEUR:-ubuntu}" | cut -d: -f6)/sauvegardes/date.txt")"

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Sauvegarde de la base (chaque nuit à 03 h 47 UTC, et avant chaque mise en ligne).
-# 1. Copie de la base du site, compressée, sur le serveur (dossier réservé à root).
-# 2. Si un stockage distant est configuré (RESTIC_REPOSITORY dans .env), copie chiffrée hors du serveur
-#    avec conservation dégressive : 30 jours, puis une par mois pendant 6 mois.
+# Copie de la base du site (et des statistiques), compressée, sur le serveur (dossier réservé à root, 7 copies gardées) ;
+# la dernière est aussi déposée dans ~/sauvegardes de l'administrateur, pour la télécharger sur son ordinateur.
 # Usage : sauvegarder.sh [étiquette]
 set -euo pipefail
 cd /opt/indemnite
@@ -32,8 +31,8 @@ ls -1t "$DOSSIER"/site-*.sql.gz | tail -n +8 | xargs -r rm -f
 ls -1t "$DOSSIER"/env-* | tail -n +8 | xargs -r rm -f
 echo "$(date -u +%FT%TZ) Sauvegarde locale $NOM ($(du -h "$DOSSIER/$NOM" | cut -f1))" >> /var/log/indemnite-sauvegarde.log
 
-# Dernière sauvegarde mise à disposition de l'administrateur, pour la récupérer depuis son ordinateur (connexion SSH,
-# lancée par l'ordinateur : le serveur, lui, ne peut joindre aucun ordinateur). Contient aussi la configuration (.env).
+# Dernière sauvegarde mise à disposition de l'administrateur, pour la télécharger depuis son ordinateur (commande
+# site-sauvegarde, puis copie SSH lancée par l'ordinateur : le serveur ne joint jamais l'ordinateur). Contient aussi .env.
 U="${SAUVEGARDE_UTILISATEUR:-ubuntu}"
 if id "$U" >/dev/null 2>&1; then
   D="$(getent passwd "$U" | cut -d: -f6)/sauvegardes"; install -d -m 700 -o "$U" -g "$U" "$D"
@@ -42,13 +41,4 @@ if id "$U" >/dev/null 2>&1; then
   cp .env "$D/env"; [ -d config-site ] && cp config-site/site.json "$D/site.json" 2>/dev/null || true
   date -u +%FT%TZ > "$D/date.txt"
   chown "$U:$U" "$D"/*; chmod 600 "$D"/*
-fi
-
-# Copie chiffrée hors du serveur (activée quand le stockage distant est configuré)
-if [ -n "${RESTIC_REPOSITORY:-}" ] && [ -n "${RESTIC_PASSWORD:-}" ]; then
-  docker run --rm -e RESTIC_REPOSITORY -e RESTIC_PASSWORD -e B2_ACCOUNT_ID -e B2_ACCOUNT_KEY \
-    -v "$DOSSIER":/sauvegardes:ro restic/restic:0.18.0 backup /sauvegardes --tag indemnite --host serveur
-  docker run --rm -e RESTIC_REPOSITORY -e RESTIC_PASSWORD -e B2_ACCOUNT_ID -e B2_ACCOUNT_KEY \
-    restic/restic:0.18.0 forget --tag indemnite --keep-daily 30 --keep-monthly 6 --prune
-  echo "$(date -u +%FT%TZ) Copie chiffrée envoyée hors du serveur" >> /var/log/indemnite-sauvegarde.log
 fi

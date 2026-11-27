@@ -90,21 +90,15 @@ Dans Umami, choisir l'équipe **Site** dans le menu en haut à gauche pour voir 
 la page Confidentialité ne sont pas comptés. La base des statistiques est sauvegardée chaque nuit avec celle du site ;
 Umami redémarre avec chaque mise à jour.
 
-## Sauvegardes hors du serveur (à activer ensuite)
+## Sauvegarde sur votre ordinateur
 
-**Solution simple : récupérer les sauvegardes sur son ordinateur.** Après chaque sauvegarde, la dernière copie (base du
-site, statistiques, configuration) est déposée dans `~/sauvegardes` de l'utilisateur SSH (`ubuntu` par défaut,
-réglable par `SAUVEGARDE_UTILISATEUR` dans `.env`), lisible par lui seul. L'ordinateur la récupère par SSH, par exemple
-chaque jour avec une tâche planifiée : `scp -i <clé> ubuntu@<serveur>:sauvegardes/* <dossier>`. C'est l'ordinateur
-qui se connecte au serveur, jamais l'inverse.
+Chaque nuit (03 h 47 UTC) et avant chaque mise en ligne, le serveur sauvegarde la base (7 copies gardées sur le serveur).
+Pour en avoir une copie chez soi, à n'importe quel moment : la commande `site-sauvegarde` fait une sauvegarde immédiate
+et la dépose dans `~/sauvegardes` de l'utilisateur SSH ; il ne reste qu'à la télécharger :
 
-**Ou, en plus : copie chiffrée automatique vers un stockage en ligne (Backblaze B2).**
+```
+ssh -t <utilisateur>@<serveur> site-sauvegarde
+scp <utilisateur>@<serveur>:sauvegardes/* <dossier de votre ordinateur>
+```
 
-Copie chiffrée chaque nuit vers Backblaze B2 (quasi gratuit) : 30 copies quotidiennes, puis une par mois pendant 6 mois.
-
-1. Sur backblaze.com : créer un compte, un compartiment (bucket) **privé**, puis une clé d'application limitée à ce
-   compartiment, avec l'accès « Read and Write ».
-2. Sur le serveur : `cd /opt/indemnite && sudo bash deploy/installer-sauvegarde.sh` — le script demande le nom du
-   compartiment et la clé, envoie une première copie et vérifie qu'on sait la relire.
-3. **Garder la clé de chiffrement affichée à la fin hors du serveur** (gestionnaire de mots de passe) : sans elle, les
-   copies sont illisibles.
+La copie contient la base du site, les statistiques et la configuration (`.env`, avec ses secrets) : la garder en lieu sûr.

@@ -40,8 +40,8 @@ Principes appliqués :
 ## 3. Où sont les données
 
 - **Serveur** : chez l'hébergeur indiqué dans les mentions légales du site, au **Canada (Québec)**, serveur dédié au site.
-- **Sauvegardes** : copies **chiffrées sur le serveur avant envoi** vers un stockage distant ; le fournisseur de stockage
-  ne peut pas les lire.
+- **Sauvegardes** : sur le serveur (accès réservé à l'administrateur système, 7 copies) et, à la demande, téléchargées sur
+  l'ordinateur de l'administrateur ; aucun service de stockage tiers.
 - Pour un visiteur du Québec, les données **restent au Québec** (serveur au Québec) : il n'y a pas de communication
   hors du Québec pour l'hébergement.
 - Pour un visiteur situé dans l'Union européenne, les données sont traitées au Canada, pays reconnu par l'Union
@@ -49,9 +49,11 @@ Principes appliqués :
 
 ## 4. Communication hors du Québec (article 17 de la Loi 25)
 
-Elle concerne aujourd'hui **seulement les sauvegardes chiffrées**, si le stockage distant choisi est situé hors du
-Québec, et elle concernerait l'hébergement lui-même si le serveur était un jour déplacé (par exemple dans l'Union
-européenne).
+Aucune aujourd'hui : le site et ses sauvegardes restent au Québec, sauf la copie que l'administrateur télécharge à la
+demande sur son propre ordinateur. Elle concernerait l'hébergement lui-même si le serveur était un jour déplacé (par
+exemple dans l'Union européenne).
+
+Évaluation préparée pour le cas où des sauvegardes chiffrées seraient un jour envoyées vers un stockage distant :
 
 | Critère de l'article 17 | Évaluation |
 |---|---|

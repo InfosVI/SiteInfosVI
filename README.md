@@ -61,7 +61,6 @@ Guide pas à pas : [docs/installation.md](docs/installation.md).
 |---|---|---|---|
 | **GitHub** | oui | héberger le code ; les tests automatiques fabriquent les images publiées sur `ghcr.io` | — |
 | **API Légifrance (PISTE)** | non (recommandé) | recalcul quotidien de la part fixe ; sans lui, la dernière valeur connue reste utilisée | [docs/configuration-piste.md](docs/configuration-piste.md) |
-| **Stockage distant** (ex. Backblaze B2) | non (recommandé) | sauvegardes chiffrées hors du serveur | [docs/installation.md](docs/installation.md#sauvegardes-hors-du-serveur-à-activer-ensuite) |
 
 Les sources BCE, Statistique Canada et Journal officiel (open data DILA) sont publiques et **sans compte**.
 
