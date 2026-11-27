@@ -234,19 +234,20 @@ V.accueil = ()=>`
   <section class="hero view"><h1>Le guide pratique des volontaires internationaux</h1>
 </section>
   <section class="cards" aria-label="Modules">
-    <a class="mod on" href="#remuneration"><h3>Pouvoir d’achat VI</h3><span class="muted small">Indemnité actuelle, pouvoir d'achat, historique, grille des indemnités.</span></a>
+    <a class="mod on" href="/pouvoir-achat"><h3>Pouvoir d’achat VI</h3><span class="muted small">Indemnité actuelle, pouvoir d'achat, historique, grille des indemnités.</span></a>
     ${['Épargne en VI','Fiscalité du VI','Logement en VI et remboursement par l\'entreprise','Remboursement des frais de bagages et transports en VI','Témoignages de VI','Assurance santé April en VI','Fin de VI','Carte du monde des VI'].map(t=>
       `<div class="mod off" aria-disabled="true"><span class="badge">🚧 Bientôt disponible</span><h3>${t}</h3></div>`).join('')}
   </section>
   <section class="grid2" aria-label="Nouveautés et prochaines fonctionnalités">
     <div class="panel"><h2>Dernières nouveautés</h2><ul style="margin:0;padding-left:18px;display:grid;gap:8px">${newsList(3)}</ul></div>
     <div class="panel"><h2>Prochaines fonctionnalités</h2><ol style="margin:0;padding-left:22px;display:grid;gap:6px">${roadmapFlat().slice(0,4).map(r=>`<li><strong>${r.t}</strong><br><span class="small muted">${r.d}</span></li>`).join('')}</ol>
-      <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:auto"><a class="btn ghost" href="#roadmap" style="font-size:.85rem">Voir la feuille de route complète →</a></div></div>
+      <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:auto"><a class="btn ghost" href="/nouveautes" style="font-size:.85rem">Voir la feuille de route complète →</a></div></div>
   </section>`;
 
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.7.0', d:'', items:['Chaque page a désormais sa propre adresse (par ex. /historique ou /grille-indemnites) : plus facile à partager et à retrouver dans les moteurs de recherche, avec un aperçu soigné quand on partage un lien']},
   {v:'1.6.0', d:'', items:['Sécurité renforcée : la carte, le PDF et la vérification anti-robot sont servis par le site lui-même (plus aucun service tiers), protections supplémentaires de l’espace admin et du serveur']},
   {v:'1.5.0', d:'', items:['Page « Dons pour l’hébergement » : coûts affichés tels qu’ils ont été payés, en $ CA et en $ US (sans conversion), augmentant chaque mois']},
   {v:'1.4.0', d:'', items:['Formulaire de contact ouvert : protégé par une vérification anti-robot (ALTCHA, hébergée sur le serveur du site), un message toutes les 12 heures, messages effacés après 60 jours','Mentions légales : coordonnées de l’hébergeur complétées','Statistiques de visite plus fiables : les robots sont mieux distingués des visiteurs (temps passé sur la page et interactions) ; page Confidentialité précisée (seul le réseau d’origine est gardé, tronqué)']},
@@ -293,13 +294,13 @@ V.roadmap = ()=>{ let k=0; return `<section class="view"><h1>Nouveautés et feui
   <div class="panel"><h2>Prochaines fonctionnalités, par ordre de priorité</h2>
     ${ROADMAP.map((ph,pi)=>`<h3 style="margin:8px 0 0">Étape ${pi+1} · ${ph.t}</h3><ol start="${k+1}" style="margin:0;padding-left:26px;display:grid;gap:4px">${ph.items.map(([t,d])=>{k++; return `<li><strong>${t}</strong> <span class="muted">— ${d}</span></li>`;}).join('')}</ol>`).join('')}
     <h3 style="margin:8px 0 0">Idées en attente</h3><ul style="margin:0;padding-left:18px">${ROADMAP_IDEAS.map(i=>`<li class="muted">${i}</li>`).join('')}</ul>
-    <p class="small muted" style="margin:0">L’ordre peut évoluer. Une idée ? Écrivez-nous via le <a href="#legal">formulaire de contact</a>.</p></div>
+    <p class="small muted" style="margin:0">L’ordre peut évoluer. Une idée ? Écrivez-nous via le <a href="/mentions-legales">formulaire de contact</a>.</p></div>
   <div class="panel"><h2>Nouveautés</h2><ul style="margin:0;padding-left:18px;display:grid;gap:8px">${newsList(NEWS.length)}</ul></div></section>`; };
 /* ===== Vue d'ensemble et historique : toutes les zones ===== */
 const zoneLabel = z => D.canada[z]?.label || titleCase(z);
 const deM = m => (/^[aeiouéh]/i.test(mlabel(m))?"d'":'de ')+mlabel(m);   // « d'oct. 2026 », « de nov. 2026 »
 const fxLabelOf = r => r.fxProv ? `taux moyen ${provRange()}` : `taux moyen ${deM(r.m)}`;
-const communityNote = `<a href="#proposer">voir les votes</a>`;
+const communityNote = `<a href="/proposer">voir les votes</a>`;
 
 V.remuneration = ()=>{
   const z=st.zone, rows=seriesFor(z);
@@ -323,7 +324,7 @@ V.remuneration = ()=>{
   const loge=Math.round(cur.geo*20)/100;
   const [fl,fc]=fiab(cur.statut);
   const missingNow = rows.at(-1).total==null;
-  const alert = (st.alert||missingNow) ? `<div class="alert" role="status"><strong>⚠</strong><span>${st.noJO?`L'arrêté du ${d1(CURRENT_PERIOD)} n'est pas encore publié au Journal officiel : le montant du ${d1(chg.m)} est affiché. Vous connaissez la nouvelle valeur ?`:'La variation d\'indemnité du trimestre en cours n\'a pas encore été récupérée. Vous la connaissez ?'}</span><a class="btn" href="#proposer">Proposez-la !</a></div>`:'';
+  const alert = (st.alert||missingNow) ? `<div class="alert" role="status"><strong>⚠</strong><span>${st.noJO?`L'arrêté du ${d1(CURRENT_PERIOD)} n'est pas encore publié au Journal officiel : le montant du ${d1(chg.m)} est affiché. Vous connaissez la nouvelle valeur ?`:'La variation d\'indemnité du trimestre en cours n\'a pas encore été récupérée. Vous la connaissez ?'}</span><a class="btn" href="/proposer">Proposez-la !</a></div>`:'';
   const srcLine = cur.community
     ? `<span>· Source : <strong>communauté</strong> (valeur la plus votée, validée par un admin) — ${communityNote}</span>`
     : `<span>· Source : ${cur.srcId?`<a href="https://www.legifrance.gouv.fr/jorf/id/${cur.srcId}" target="_blank" rel="noopener">arrêté du JO</a>`:'arrêté du JO'}</span>`;
@@ -340,10 +341,10 @@ V.remuneration = ()=>{
       <div class="big num">${fmt(cur.total)} €<span class="muted small"> / mois</span></div>${conv}${usd}
       <dl class="kv num"><dt>Part fixe</dt><dd>${fmt(cur.fixe)} €</dd><dt>Part géographique</dt><dd>${fmt(cur.geo)} €</dd>
       ${hasCpi?(()=>{const i=rows.indexOf(lastCpi), y=rows[i-12]; const d=y?.cpi?lastCpi.cpi/y.cpi-1:null; return `<dt>Hausse des prix sur 12 mois (inflation) · <strong style="color:var(--fg)">${mlabel(lastCpi.m)}</strong>${y?`<br><span class="small muted" style="font-weight:400">prix en ${mlabel(lastCpi.m)} comparés à ${mlabel(y.m)}</span>`:''}</dt><dd class="${cls(d,true)}">${pct(d,1)}</dd>`})()
-        :`<dt>Hausse des prix sur 12 mois (inflation) ${tip(`<strong>Indice du coût de la vie non disponible pour cette zone.</strong><br>Le site n'utilise que des données publiques et fiables, mises à jour régulièrement. Pour cette zone, nous n'en avons pas (encore) :<ul style="margin:4px 0;padding-left:16px"><li>dans beaucoup de pays, l'indice des prix n'est publié que pour le pays entier, pas pour la ville de la mission ;</li><li>il peut être publié avec beaucoup de retard, irrégulièrement, ou sans accès ouvert ;</li><li>dans les pays en crise, en conflit ou à très forte inflation, les chiffres officiels peuvent être interrompus ou peu fiables.</li></ul>Sans cet indice, le pouvoir d'achat ne peut pas être calculé : fiez-vous au montant en devise locale et aux prix sur place. <a href="#methodo">En savoir plus</a>`,'Pourquoi pas de valeur ?')}</dt><dd class="muted">non disponible</dd>`}</dl>
+        :`<dt>Hausse des prix sur 12 mois (inflation) ${tip(`<strong>Indice du coût de la vie non disponible pour cette zone.</strong><br>Le site n'utilise que des données publiques et fiables, mises à jour régulièrement. Pour cette zone, nous n'en avons pas (encore) :<ul style="margin:4px 0;padding-left:16px"><li>dans beaucoup de pays, l'indice des prix n'est publié que pour le pays entier, pas pour la ville de la mission ;</li><li>il peut être publié avec beaucoup de retard, irrégulièrement, ou sans accès ouvert ;</li><li>dans les pays en crise, en conflit ou à très forte inflation, les chiffres officiels peuvent être interrompus ou peu fiables.</li></ul>Sans cet indice, le pouvoir d'achat ne peut pas être calculé : fiez-vous au montant en devise locale et aux prix sur place. <a href="/methodologie">En savoir plus</a>`,'Pourquoi pas de valeur ?')}</dt><dd class="muted">non disponible</dd>`}</dl>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="small muted">Dernier ajustement (${d1(chg.m)}) :</span>
         <span class="chip ${cls(varPct)||'flat'} num">${arrow(varPct)} ${varEur>0?'+':''}${fmt(varEur)} € · ${pct(varPct)}</span>
-        ${tip(`<strong>Ajustement du ${d1(chg.m)}</strong> : c'est le dernier changement de l'indemnité, fixé par le dernier arrêté (<a href="https://www.legifrance.gouv.fr/jorf/id/${lastArrete().id}" target="_blank" rel="noopener">voir l'arrêté</a>).<br>Indemnité du ${d1(prevQ.m)} : ${fmt(prevQ.total)} € → du ${d1(chg.m)} : ${fmt(cur.total)} €, soit ${varEur>0?'+':''}${fmt(varEur)} € (${pct(varPct)}).<br>L'indemnité est ajustée tous les 3 mois ; les détails ne sont pas toujours publiés ailleurs, c'est pourquoi les visiteurs peuvent aussi <a href="#proposer">proposer une valeur</a>.`,'Que représente ce montant ?')}</div>
+        ${tip(`<strong>Ajustement du ${d1(chg.m)}</strong> : c'est le dernier changement de l'indemnité, fixé par le dernier arrêté (<a href="https://www.legifrance.gouv.fr/jorf/id/${lastArrete().id}" target="_blank" rel="noopener">voir l'arrêté</a>).<br>Indemnité du ${d1(prevQ.m)} : ${fmt(prevQ.total)} € → du ${d1(chg.m)} : ${fmt(cur.total)} €, soit ${varEur>0?'+':''}${fmt(varEur)} € (${pct(varPct)}).<br>L'indemnité est ajustée tous les 3 mois ; les détails ne sont pas toujours publiés ailleurs, c'est pourquoi les visiteurs peuvent aussi <a href="/proposer">proposer une valeur</a>.`,'Que représente ce montant ?')}</div>
       <div class="src" style="display:grid;gap:4px">
         <span>Part géographique : <span class="pill ${fc}">${fl}</span> ${srcLine.replace('· Source : ','')}</span>
         <span>Part fixe : ${fixePill} ${fixeLinks(cur.m)}</span></div>
@@ -387,7 +388,7 @@ V.remuneration = ()=>{
           ['Indemnité en €', fmt(R.A.total)+' €', fmt(R.T.v)+' €', R.di],
           [`Taux € → ${cl}`, fmt(R.A.fx,4), fmt(R.F.v,4), R.df, false, fxNote||(R.F.carried?'taux '+deM(R.F.m):'')],
           [`Indemnité en ${cl}`, fmt(R.A.total*R.A.fx), fmt(R.T.v*R.F.v), R.dl],
-          [`Indice des prix · ${esc(city)} ${tip(`Indice du coût de la vie utilisé : <strong>${esc(city)}</strong> (Statistique Canada).<br>Une zone d'indemnité peut regrouper plusieurs villes et leurs banlieues : leurs prix peuvent évoluer différemment.<br><a href="#indices">Villes utilisées par zone</a>`,'Quel indice ?')}`, fmt(R.A.cpi,1), R.noCpi?'<span class="muted">'+(R.warn?'non récupéré':'pas encore publié')+'</span>':fmt(R.C.v,1), R.dc, true, !R.noCpi&&R.C.carried?'publié : '+mlabel(R.C.m):'']
+          [`Indice des prix · ${esc(city)} ${tip(`Indice du coût de la vie utilisé : <strong>${esc(city)}</strong> (Statistique Canada).<br>Une zone d'indemnité peut regrouper plusieurs villes et leurs banlieues : leurs prix peuvent évoluer différemment.<br><a href="/villes-cout-de-la-vie">Villes utilisées par zone</a>`,'Quel indice ?')}`, fmt(R.A.cpi,1), R.noCpi?'<span class="muted">'+(R.warn?'non récupéré':'pas encore publié')+'</span>':fmt(R.C.v,1), R.dc, true, !R.noCpi&&R.C.carried?'publié : '+mlabel(R.C.m):'']
         ], ['= Pouvoir d\'achat', g]); })():''}
       ${R?.warn?`<p class="small late" style="margin:0">⚠ Certaines données n'ont pas été récupérées : voir le détail.</p>`:''}
       <button type="button" class="lkbtn ${R?.warn?'warn':''}" id="lkBtn" data-a="${iA}" data-b="${iB}" aria-haspopup="dialog">Voir le détail du calcul</button>
@@ -401,7 +402,7 @@ V.remuneration = ()=>{
     const di=T&&r0.total?T.v/r0.total-1:null, df=F&&r0.fx?F.v/r0.fx-1:null, dl=di!=null&&df!=null?(1+di)*(1+df)-1:null, res=euro?di:dl;
     const fxLab = F ? (rows[F.j].fxProv?'moy. '+provRange():'moy. '+deM(F.m)) : '';
     right=`<div class="panel">
-      <div class="phead"><span class="eyebrow">Indemnité en ${euro?'euros':'devise locale ('+esc(dev)+')'}</span>${tip(`<strong>Coût de la vie non disponible</strong> pour cette zone : le pouvoir d'achat ne peut pas être calculé (ces données ne sont pas publiques ou fiables partout).<br>Fiez-vous au montant ${euro?'':'en devise locale '}et à votre connaissance des prix sur place (loyer, courses, transports). <a href="#methodo">En savoir plus</a>`)}</div>
+      <div class="phead"><span class="eyebrow">Indemnité en ${euro?'euros':'devise locale ('+esc(dev)+')'}</span>${tip(`<strong>Coût de la vie non disponible</strong> pour cette zone : le pouvoir d'achat ne peut pas être calculé (ces données ne sont pas publiques ou fiables partout).<br>Fiez-vous au montant ${euro?'':'en devise locale '}et à votre connaissance des prix sur place (loyer, courses, transports). <a href="/methodologie">En savoir plus</a>`)}</div>
       <div class="huge num ${cls(res)}">${arrow(res)} ${pct(res,1)}</div>
       <p style="margin:0">${res==null?'Pas assez de données.':`Votre indemnité vaut <strong>${fmt(Math.abs(res)*100,1)} % ${res>=0?'de plus':'de moins'}</strong> en ${euro?'euros':esc(dev)} qu'en ${mlabel(r0.m)}.`}</p>
       <p class="small muted" style="margin:0">Calculé ${perLabel(r0.m,rl.m,iEnd===rows.length-1)}</p>
@@ -459,7 +460,7 @@ V.remuneration = ()=>{
         <li><strong>Indemnité</strong> : montant du mois ; la variation n'apparaît que le mois où l'arrêté prend effet (y compris 0,00 %).</li>
         ${hasCpi?'<li><strong>Indice du coût de la vie</strong> : valeur publiée et variation sur 1 mois.</li>':''}
         <li><strong>${resName}</strong> (colonnes mises en évidence) : résultat des autres colonnes, depuis le début de la période (${p0?mlabel(p0.m):'—'}) et sur 1 mois.</li></ul>
-      <p class="src">Sources : arrêtés du Journal officiel${euro?'':' · '+(dev==='CAD'||H.fxSrc[dev]==='BCE'?'taux de référence de la BCE':'Frankfurter (banques centrales)')}${hasCpi?' · adapté de Statistique Canada, tableau 18-10-0004-01 (ne constitue pas une approbation par Statistique Canada)':''} · <a href="#historique">Historique complet</a></p></div>`})():'';
+      <p class="src">Sources : arrêtés du Journal officiel${euro?'':' · '+(dev==='CAD'||H.fxSrc[dev]==='BCE'?'taux de référence de la BCE':'Frankfurter (banques centrales)')}${hasCpi?' · adapté de Statistique Canada, tableau 18-10-0004-01 (ne constitue pas une approbation par Statistique Canada)':''} · <a href="/historique">Historique complet</a></p></div>`})():'';
   return `<section class="view"><h1>Pouvoir d’achat VI</h1>${head}${alert}<div class="grid2">${card}${right}</div>
   <div class="panel"><h2>Détail des 4 derniers mois</h2><div class="tscroll"><table class="list mtab"><thead>${monthsHead}</thead><tbody>${months}</tbody></table></div>
     <p class="small muted" style="margin:0">${euro?'Zone euro : pas de taux de change.':'Cliquez sur une case (indemnité, taux de change'+(hasCpi?', coût de la vie, pouvoir d\'achat':'')+') pour voir son évolution. La dernière colonne est le résultat des trois autres.'}</p></div>${drawer}</section>`;
@@ -653,7 +654,7 @@ async function mountComparaison(){
   $('#cmpTable').innerHTML=`<div class="phead" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">Classement · ${esc(V.l)} · ${mlabel(m)}</h2>
       <button type="button" class="linkbtn small" id="cmpCsv" title="Télécharger ce tableau en CSV">⬇ CSV</button></div>
     <div class="tscroll cmptab"><table class="list"><thead><tr><th class="r">#</th><th>Zone</th><th>Pays</th><th class="r">${esc(V.short)}</th></tr></thead><tbody>
-      ${vals.map((o,i)=>{ const c=color(o.x.v); return `<tr><td class="r num muted">${i+1}</td><td><a href="#remuneration" data-zone="${esc(o.z.z)}">${esc(zoneLabel(o.z.z))}</a></td><td class="small">${esc(titleCase(o.z.pays))}</td>
+      ${vals.map((o,i)=>{ const c=color(o.x.v); return `<tr><td class="r num muted">${i+1}</td><td><a href="/pouvoir-achat" data-zone="${esc(o.z.z)}">${esc(zoneLabel(o.z.z))}</a></td><td class="small">${esc(titleCase(o.z.pays))}</td>
         <td class="r"><span class="vchip num" style="background:${c};color:${cmpInk(c)}">${cmpFmt(vk,o.x.v,o.z.dev)}</span></td></tr>`; }).join('')}
     </tbody></table></div>
     <p class="small muted" style="margin:0">${vals.length} zone(s) avec une valeur ; les zones sans valeur à cette date ne sont pas listées. Plus grande valeur en haut.</p>`;
@@ -827,7 +828,7 @@ V.pays = ()=>{
   list.sort((a,b)=> sort==='montant'? b.geo-a.geo : sort==='montant-asc'? a.geo-b.geo : a.z.localeCompare(b.z,'fr'));
   return `<section class="view"><h1>Grille des indemnités</h1>
   <p class="muted" style="margin:0">Montant en vigueur au ${d1(CURRENT_PERIOD)}.</p>
-  ${st.noJO?`<div class="alert" role="status"><strong>⚠</strong><span>L'arrêté du ${d1(CURRENT_PERIOD)} n'est pas encore publié. Montants affichés : <strong>valeur communautaire validée</strong> quand elle existe, sinon <strong>montant du ${d1(lastArrete().effet.slice(0,7))}</strong> (marqué « ancien »).</span><a class="btn" href="#proposer">Proposer une valeur</a></div>`:''}
+  ${st.noJO?`<div class="alert" role="status"><strong>⚠</strong><span>L'arrêté du ${d1(CURRENT_PERIOD)} n'est pas encore publié. Montants affichés : <strong>valeur communautaire validée</strong> quand elle existe, sinon <strong>montant du ${d1(lastArrete().effet.slice(0,7))}</strong> (marqué « ancien »).</span><a class="btn" href="/proposer">Proposer une valeur</a></div>`:''}
   <div class="toolbar"><div class="field"><label for="pq">Rechercher</label><input type="text" id="pq" value="${esc(st.pq||'')}" placeholder="ex. Japon, Berlin…"></div>
   <div class="field"><label for="ps">Trier par</label><select id="ps"><option value="pays" ${sort==='pays'?'selected':''}>Pays</option><option value="montant" ${sort==='montant'?'selected':''}>Montant décroissant</option><option value="montant-asc" ${sort==='montant-asc'?'selected':''}>Montant croissant</option></select></div>
   ${modeToggle()}<span class="small muted" style="padding-bottom:8px">${list.length} zones</span></div>
@@ -1071,7 +1072,7 @@ function adminCurrent(t,z,m){
   if(t==='fixe'){ const v=fixeAt(m); return v==null?null:{v, tag:fixePill, src:fixeLinks(m,true)}; }
   const s=seriesFor(z), r=s&&s.find(x=>x.m===m); if(!r||r.geo==null) return null;
   const [fl,fc]=fiab(r.statut);
-  return {v:r.geo, tag:`<span class="pill ${fc}">${fl}</span>`, src:r.community?`communauté (<a href="#proposer">voir les votes</a>)`:(r.srcId?`<a href="${LF(r.srcId)}" target="_blank" rel="noopener">arrêté du Journal officiel</a>`:'—'), q:quarterStart(m)};
+  return {v:r.geo, tag:`<span class="pill ${fc}">${fl}</span>`, src:r.community?`communauté (<a href="/proposer">voir les votes</a>)`:(r.srcId?`<a href="${LF(r.srcId)}" target="_blank" rel="noopener">arrêté du Journal officiel</a>`:'—'), q:quarterStart(m)};
 }
 function adminManual(){
   const mf=st.mf||(st.mf={t:'geo',z:st.zone,m:CURRENT_PERIOD}), fixe=mf.t==='fixe';
@@ -1170,7 +1171,7 @@ const adminLogin = ()=>`<section class="view"><h1>Espace administrateur</h1>
 const ADMIN_MODULES=[
   {id:'admin-pouvoir', t:'Pouvoir d’achat VI', d:'Valeurs de l’indemnité, propositions de la communauté, journal des requêtes, historique des modifications, données collectées.'},
   ...['Épargne en VI','Fiscalité du VI','Logement en VI et remboursement par l\'entreprise','Remboursement des frais de bagages et transports en VI','Témoignages de VI','Assurance santé April en VI','Fin de VI','Carte du monde des VI'].map(t=>({t}))];
-const adminHead=(title,back)=>`<div class="toolbar" style="justify-content:space-between;align-items:flex-end"><div>${back?'<a href="#admin" class="small">← Tous les modules (administration)</a>':''}<h1 style="margin:${back?'4px':'0'} 0 0">${title}</h1></div><button class="btn ghost" type="button" id="logout">Se déconnecter</button></div>`;
+const adminHead=(title,back)=>`<div class="toolbar" style="justify-content:space-between;align-items:flex-end"><div>${back?'<a href="/#admin" class="small">← Tous les modules (administration)</a>':''}<h1 style="margin:${back?'4px':'0'} 0 0">${title}</h1></div><button class="btn ghost" type="button" id="logout">Se déconnecter</button></div>`;
 V.admin = ()=>{
   if(!st.admin) return adminLogin();
   initProposals(); initHist();
@@ -1242,7 +1243,7 @@ V['admin-stats'] = ()=>{
   </div>
   <ul class="small muted" style="margin:0;padding-left:18px">
     <li>Mesure d’audience installée sur le serveur du site (Umami) : aucune donnée envoyée à un tiers, aucune publicité.</li>
-    <li>Les visiteurs qui ont refusé la mesure d’audience ne sont pas comptés. Ils peuvent la refuser à tout moment dans la page <a href="#confidentialite">Confidentialité</a>.</li>
+    <li>Les visiteurs qui ont refusé la mesure d’audience ne sont pas comptés. Ils peuvent la refuser à tout moment dans la page <a href="/confidentialite">Confidentialité</a>.</li>
     <li>L’espace administrateur n’est jamais compté.</li></ul></section>`;
 };
 /* ===== Messages du formulaire de contact (module global) ===== */
@@ -1375,7 +1376,7 @@ V.methodo = ()=>`<section class="view method"><h1>Méthodologie et sources</h1>
   <div class="panel"><h2>Le coût de la vie : d'où viennent les chiffres</h2>
   <p style="margin:0">On utilise l'<strong>indice des prix à la consommation</strong> (IPC) publié par l'institut statistique officiel du pays, pour une ville précise. Il mesure l'évolution du prix d'un panier de biens et services (logement, alimentation, transport…). On compare son évolution d'un mois à l'autre, pas son niveau.</p>
   <p style="margin:0">Une zone d'indemnité regroupe souvent plusieurs villes qui touchent la même indemnité, alors que leurs prix n'évoluent pas pareil. Le site utilise <strong>l'indice de la ville principale de la zone</strong>, indiqué dans le tableau ci-dessous. Si vous vivez dans une autre ville de la zone, l'évolution réelle de vos prix peut être un peu différente.</p>
-  <a class="btn ghost" href="#indices" style="justify-self:start;text-decoration:none">Voir la ville utilisée pour chaque zone</a>
+  <a class="btn ghost" href="/villes-cout-de-la-vie" style="justify-self:start;text-decoration:none">Voir la ville utilisée pour chaque zone</a>
   <p class="small muted" style="margin:0">Source : Statistique Canada, IPC mensuel non désaisonnalisé, tableau 18-10-0004-01, publié environ 3 semaines après la fin du mois. Tant que l'indice du mois n'est pas publié, le dernier connu est utilisé (signalé par *).</p></div>
 
   <div class="panel"><h2>Quand le coût de la vie n'est pas disponible</h2>
@@ -1407,7 +1408,7 @@ V.methodo = ()=>`<section class="view method"><h1>Méthodologie et sources</h1>
     <li><strong>Valeurs de la communauté</strong> : un volontaire peut librement partager le montant de sa propre indemnité, avec son accord. Le site se contente de collecter ces valeurs pour les rendre publiques, <strong>sans aucune identification personnelle</strong> (ni nom, ni employeur, ni bulletin).</li>
     <li><strong>Barèmes « NE PAS DIFFUSER »</strong> : contrairement à ce que l'on pourrait croire, les barèmes disponibles dans l'espace personnel des VIE n'ont <strong>pas du tout</strong> été utilisés ; les mêmes montants se déduisent entièrement des arrêtés publics. Nous invitons Business France à consacrer son énergie à accompagner soigneusement les volontaires internationaux et à leur offrir une expérience enrichissante, tout en leur garantissant autant leur <strong>sécurité</strong>, immédiate comme à long terme, que leur <strong>bonne santé</strong>, plutôt qu'à s'intéresser à un site qui publie des données publiques, gratuites et accessibles à tous.</li>
   </ul></div></section>`;
-V.indices = ()=>`<section class="view"><div><a href="#methodo" class="small">← Méthodologie</a></div><h1>Ville utilisée pour le coût de la vie</h1>
+V.indices = ()=>`<section class="view"><div><a href="/methodologie" class="small">← Méthodologie</a></div><h1>Ville utilisée pour le coût de la vie</h1>
   <p class="muted" style="margin:0;max-width:72ch">Une zone d'indemnité peut regrouper plusieurs villes et leurs banlieues. Le site utilise l'indice des prix de la ville principale de chaque zone.</p>
   <table class="list fit"><thead><tr><th>Zone d'indemnité</th><th>Villes de la zone</th><th>Indice utilisé</th><th>Autres villes avec un indice publié</th></tr></thead><tbody>
     <tr><td>Canada — autres villes francophones</td><td>Montréal, Québec, Sherbrooke…</td><td><strong>Montréal</strong></td><td>Québec</td></tr>
@@ -1472,8 +1473,8 @@ V.legal = ()=>`<section class="view"><h1>Mentions légales &amp; contact</h1>
     <li><strong>Taux de change</strong> : Banque centrale européenne (réutilisation libre, source citée) ; complément Frankfurter</li>
     <li><strong>Indices des prix</strong> : Statistique Canada (Licence du gouvernement ouvert — Statistique Canada)</li>
     <li><strong>Code du site</strong> : logiciel libre, licence MIT</li>
-    <li>Détail des sources et des calculs : <a href="#methodo">Méthodologie et sources</a></li></ul></div></div>
-  <div class="panel"><h2>Données personnelles</h2><ul style="margin:0;padding-left:18px"><li>Aucune donnée vendue ni utilisée à des fins publicitaires. Tout est expliqué dans la page <a href="#confidentialite">Confidentialité</a>.</li></ul></div>
+    <li>Détail des sources et des calculs : <a href="/methodologie">Méthodologie et sources</a></li></ul></div></div>
+  <div class="panel"><h2>Données personnelles</h2><ul style="margin:0;padding-left:18px"><li>Aucune donnée vendue ni utilisée à des fins publicitaires. Tout est expliqué dans la page <a href="/confidentialite">Confidentialité</a>.</li></ul></div>
   <div class="panel"><h2>Contact</h2>
   <form class="card" id="contact" novalidate><div class="field"><label for="cmail">Votre email (facultatif)</label><input type="email" id="cmail" maxlength="254" autocomplete="email" placeholder="pour recevoir une réponse"><span class="small muted">Utilisé seulement pour vous répondre, jamais affiché ni partagé ; supprimé 60 jours après.</span></div><div class="field"><label for="cmsg">Votre message</label><textarea id="cmsg" rows="4" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px" maxlength="1000"></textarea><span class="small muted" id="ccount" style="justify-self:end">0 / 1000 caractères</span></div>
   <div class="field"><label>Vérification anti-robot</label>${captcha('ccap')}</div>
@@ -1506,7 +1507,7 @@ V.confidentialite = ()=>{ let off=false; try{ off=localStorage.getItem('noStats'
     <p style="margin:0"><strong>État actuel :</strong> ${off?'<span class="pill">mesure d’audience refusée</span>':'<span class="pill ok">mesure d’audience acceptée</span>'}</p>
     <div><button class="btn ghost" type="button" id="toggleStats">${off?'Accepter la mesure d’audience':'Refuser la mesure d’audience'}</button></div></div>
   <div class="panel"><h2>Vos droits</h2><ul style="margin:0;padding-left:18px;display:grid;gap:4px">
-    <li><strong>Accès, correction, effacement, opposition</strong> : via le <a href="#legal">formulaire de contact</a>.</li>
+    <li><strong>Accès, correction, effacement, opposition</strong> : via le <a href="/mentions-legales">formulaire de contact</a>.</li>
     <li>Effacer vos cookies coupe le lien avec vos votes et vos visites.</li>
     <li><strong>Responsable</strong> de la protection des renseignements personnels : l'éditeur du site, joignable par le formulaire de contact.</li>
     <li>Lois respectées : <strong>Loi 25</strong> (Québec), loi canadienne (LPRPDE) et <strong>RGPD</strong> pour les visiteurs en Europe.</li>
@@ -1549,8 +1550,8 @@ function statusBar(){
   // Barre compacte : une pastille par donnée (point vert = à jour, orange = valeur communautaire, rouge = manquante) ;
   // le texte complet est dans l'infobulle de chaque pastille, et tout le détail sous « Détails »
   const indSt = missing?'bad':qRow?.community?'mid':'ok';
-  const indTip = missing?`L'indemnité du ${d1(qs)} manque${st.noJO?' (arrêté pas encore publié)':''}. Montant affiché : celui du ${d1(lastValQ)}. <a href="#proposer">Proposez-la</a>`
-    : qRow?.community?`Arrêté du ${d1(qs)} pas encore publié : valeur communautaire validée par un admin. <a href="#proposer">Voir les votes</a>`
+  const indTip = missing?`L'indemnité du ${d1(qs)} manque${st.noJO?' (arrêté pas encore publié)':''}. Montant affiché : celui du ${d1(lastValQ)}. <a href="/proposer">Proposez-la</a>`
+    : qRow?.community?`Arrêté du ${d1(qs)} pas encore publié : valeur communautaire validée par un admin. <a href="/proposer">Voir les votes</a>`
     : `Indemnité en vigueur depuis le ${d1(lastValQ)} (dernier arrêté).`;
   const pill=(k,v,s,tipHtml)=>`<span class="sp ${s}"><span class="dot" aria-hidden="true"></span><span class="k">${k}</span> <strong>${v}</strong>${tipHtml?tip(tipHtml):''}</span>`;
   // Date de référence du site : temps universel (UTC) ; la date de l'appareil du visiteur est indiquée quand elle diffère
@@ -1587,7 +1588,7 @@ function statusBar(){
   // Indemnité de la zone choisie : part géographique (dernier arrêté) et part fixe (décrets), dates et liens
   const la=lastArrete(), cr=[...rows].reverse().find(r=>r.total!=null), nextQ=(()=>{const [y,m]=qs.split('-').map(Number); return m===10?`${y+1}-01`:`${y}-${String(m+3).padStart(2,'0')}`})();
   const indRows = `
-    <tr class="cur"><td><strong>Part géographique</strong>${cr?.community?' <span class="pill mid">communauté</span>':''}</td><td class="r num">${cr?fmt(cr.geo)+' €':'—'}</td><td>${cr?.community?d1(qs):fmtDay(la.effet)}</td><td>${cr?.community?'—':fmtDay(la.publi)}</td><td>${cr?.community?'<a href="#proposer">valeur communautaire (voir les votes)</a>':`<a href="${LF(la.id)}" target="_blank" rel="noopener">arrêté du ${fmtDay(la.signe)}</a>`}</td></tr>
+    <tr class="cur"><td><strong>Part géographique</strong>${cr?.community?' <span class="pill mid">communauté</span>':''}</td><td class="r num">${cr?fmt(cr.geo)+' €':'—'}</td><td>${cr?.community?d1(qs):fmtDay(la.effet)}</td><td>${cr?.community?'—':fmtDay(la.publi)}</td><td>${cr?.community?'<a href="/proposer">valeur communautaire (voir les votes)</a>':`<a href="${LF(la.id)}" target="_blank" rel="noopener">arrêté du ${fmtDay(la.signe)}</a>`}</td></tr>
     <tr><td><strong>Part fixe</strong></td><td class="r num">${fmt(fixeAt(CURRENT_MONTH))} €</td><td>01/01/2024</td><td>—</td><td>${fixeLinks(CURRENT_MONTH,true)}</td></tr>
     <tr><td><strong>Total</strong></td><td class="r num"><strong>${cr?fmt(cr.total)+' €':'—'}</strong></td><td colspan="3" class="small muted">${esc(zoneLabel(z))} · ${st.mode.toUpperCase()}</td></tr>
     ${st.noJO?`<tr><td class="late">⚠ Arrêté du ${d1(qs)}</td><td class="late" colspan="4">pas encore publié au Journal officiel (vérifié chaque jour)</td></tr>`:''}
@@ -1652,20 +1653,33 @@ if(window.SITE_STATS){
   setInterval(()=>{ if(document.visibilityState!=='visible') return; actifSec+=5;
     while(actifInter && actifEnvoyes<ACTIF_PALIERS.length && actifSec>=ACTIF_PALIERS[actifEnvoyes][0]){ trackEvent(ACTIF_PALIERS[actifEnvoyes][1]); actifEnvoyes++; } },5000);
 }
+const ROUTES={"accueil": "/", "remuneration": "/pouvoir-achat", "historique": "/historique", "pays": "/grille-indemnites", "comparaison": "/comparaison-pays", "proposer": "/proposer", "methodo": "/methodologie", "indices": "/villes-cout-de-la-vie", "roadmap": "/nouveautes", "dons": "/dons", "legal": "/mentions-legales", "confidentialite": "/confidentialite"};
+const VUE_DE_CHEMIN=Object.fromEntries(Object.entries(ROUTES).map(([v,p])=>[p,v]));
+// Page affichée : « #… » (espace admin, anciens liens) sinon l'adresse de la page
+function vueCourante(){ const h=location.hash.slice(1); if(h) return h; return VUE_DE_CHEMIN[location.pathname.replace(/\/+$/,'')||'/']||'accueil'; }
+// Ancien lien « #historique » → adresse propre « /historique »
+function normaliserAdresse(){ const h=location.hash.slice(1); if(h&&ROUTES[h]) history.replaceState(null,'',ROUTES[h]+location.search); }
+normaliserAdresse();
+// Liens internes : changement de page sans recharger le site
+document.addEventListener('click',e=>{ const a=e.target.closest?.('a[href^="/"]'); if(!a||a.target||e.defaultPrevented||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey) return;
+  const p=a.getAttribute('href'); if(!(p in VUE_DE_CHEMIN)) return; e.preventDefault();
+  if(location.pathname!==p||location.hash) history.pushState(null,'',p); st.drawer=null; window.scrollTo(0,0); render(); });
 function render(){
-  const v=(location.hash.slice(1)||'accueil'); const view=V[v]?v:'accueil';
+  const v=vueCourante(); const view=V[v]?v:'accueil';
   const inModule=['remuneration','historique','pays','comparaison','proposer','methodo','indices'].includes(view);
   $('#modnav').hidden=!inModule;
   const mn=inModule?'Pouvoir d’achat VI':view==='admin-pouvoir'?'Administration · Pouvoir d’achat VI':view==='admin-stats'?'Administration · Statistiques':view==='admin-messages'?'Administration · Messages':view==='admin'?'Administration':view==='roadmap'?'Nouveautés et feuille de route':view==='dons'?'Dons pour l’hébergement':'';
   $('#modname').textContent=mn; $('#modname').hidden=!mn;
   $('#statusbar').innerHTML = inModule ? statusBar() : '';
   const navView = view==='indices' ? 'methodo' : view;   // le tableau des villes fait partie de la Méthodologie
-  document.querySelectorAll('nav.main a').forEach(a=>{ if(a.getAttribute('href')==='#'+navView) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  document.querySelectorAll('nav.main a').forEach(a=>{ if(a.getAttribute('href')===(ROUTES[navView]||'#'+navView)) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   $('#app').innerHTML=V[view]();
   if(view==='comparaison') mountComparaison();
+  document.title=(view==='accueil'?SITE.nom+' · '+(SITE.sousTitre||''):(PAGE_NOMS[view]||'Administration')+' · '+SITE.nom);
   trackPage(view);
 }
-window.addEventListener('hashchange',()=>{st.drawer=null;window.scrollTo(0,0);render();});
+window.addEventListener('hashchange',()=>{normaliserAdresse();st.drawer=null;window.scrollTo(0,0);render();});
+window.addEventListener('popstate',()=>{st.drawer=null;render();});
 document.addEventListener('click',e=>{
   const t=e.target;
   if(t.closest('#demoAlert')){ st.alert=!st.alert; location.hash='#remuneration'; render(); return; }
