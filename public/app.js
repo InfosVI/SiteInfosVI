@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.2', d:'', items:['Formulaire de contact : messages jusqu’à 2 500 caractères']},
   {v:'1.9.1', d:'', items:['Feuille de route revue : organisée par module à venir (Épargne, Fiscalité, Logement, Frais de voyage, Assurance santé, Fin de VI, Témoignages, Carte du monde)']},
   {v:'1.9.0', d:'', items:['Comparaison entre pays : la carte et le classement s’affichent de nouveau à l’ouverture de la page']},
   {v:'1.8.1', d:'', items:['Espace admin : les boutons « Supprimer » et « Actualiser » du module Messages fonctionnent de nouveau']},
@@ -1471,7 +1472,7 @@ V.legal = ()=>`<section class="view"><h1>Mentions légales &amp; contact</h1>
     <li>Détail des sources et des calculs : <a href="/methodologie">Méthodologie et sources</a></li></ul></div></div>
   <div class="panel"><h2>Données personnelles</h2><ul style="margin:0;padding-left:18px"><li>Aucune donnée vendue ni utilisée à des fins publicitaires. Tout est expliqué dans la page <a href="/confidentialite">Confidentialité</a>.</li></ul></div>
   <div class="panel"><h2>Contact</h2>
-  <form class="card" id="contact" novalidate><div class="field"><label for="cmail">Votre email (facultatif)</label><input type="email" id="cmail" maxlength="254" autocomplete="email" placeholder="pour recevoir une réponse"><span class="small muted">Utilisé seulement pour vous répondre, jamais affiché ni partagé ; supprimé 60 jours après.</span></div><div class="field"><label for="cmsg">Votre message</label><textarea id="cmsg" rows="4" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px" maxlength="1000"></textarea><span class="small muted" id="ccount" style="justify-self:end">0 / 1000 caractères</span></div>
+  <form class="card" id="contact" novalidate><div class="field"><label for="cmail">Votre email (facultatif)</label><input type="email" id="cmail" maxlength="254" autocomplete="email" placeholder="pour recevoir une réponse"><span class="small muted">Utilisé seulement pour vous répondre, jamais affiché ni partagé ; supprimé 60 jours après.</span></div><div class="field"><label for="cmsg">Votre message</label><textarea id="cmsg" rows="4" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px" maxlength="2500"></textarea><span class="small muted" id="ccount" style="justify-self:end">0 / 2500 caractères</span></div>
   <div class="field"><label>Vérification anti-robot</label>${captcha('ccap')}</div>
   <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn" type="submit">Envoyer</button><span class="small muted">Un message toutes les 12 heures. Messages effacés après 60 jours.</span></div></form></div></section>`;
 V.confidentialite = ()=>{ let off=false; try{ off=localStorage.getItem('noStats')==='1'; }catch(e){}
@@ -1756,7 +1757,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='cur'){ st.hcur=e.target.value; render(); }
 });
 document.addEventListener('input',e=>{
-  if(e.target.id==='cmsg'){ const n=e.target.value.length, c=$('#ccount'); c.textContent=`${n} / 1000 caractères`; c.classList.toggle('late', n>=1000); }
+  if(e.target.id==='cmsg'){ const n=e.target.value.length, c=$('#ccount'); c.textContent=`${n} / 2500 caractères`; c.classList.toggle('late', n>=2500); }
   if(e.target.id==='pq'){ st.pq=e.target.value; const pos=e.target.selectionStart; render(); const i=$('#pq'); i.focus(); i.setSelectionRange(pos,pos); }
   if(e.target.id==='pval'){ const prevGeo=+e.target.dataset.ref, refm=e.target.dataset.refm; const v=parseFloat(e.target.value.replace(',','.'));
     let out='—'; if(isFinite(v)){ if(st.pm==='pct'){ out=fmt(truncPct(prevGeo,v))+' €'; } else { out=pct(v/prevGeo-1)+' par rapport au 1er '+mlabel(refm); } }
@@ -1788,7 +1789,7 @@ document.addEventListener('submit',e=>{
     if(!captchaOk('ccap')){ toast('Cochez la vérification anti-robot.'); return; }
     const btn=f.querySelector('button[type=submit]'); btn.disabled=true;
     postJson('/api/contact',{email:em,message:m,altcha:captchaVal('ccap')}).then(d=>{
-      if(d.ok){ f.reset(); $('#ccount').textContent='0 / 1000 caractères'; toast(em?'Message envoyé. Réponse à l’adresse indiquée.':'Message envoyé. Sans email, aucune réponse n’est possible.'); }
+      if(d.ok){ f.reset(); $('#ccount').textContent='0 / 2500 caractères'; toast(em?'Message envoyé. Réponse à l’adresse indiquée.':'Message envoyé. Sans email, aucune réponse n’est possible.'); }
       else toast(d.prochain?`Un seul message toutes les 12 heures : prochain envoi possible le ${new Date(d.prochain).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}.`:(d.error||'Envoi impossible.'));
     }).catch(()=>toast('Envoi impossible : pas de réponse du serveur. Réessayez dans un instant.')).finally(()=>{ btn.disabled=false; captchaReset('ccap'); }); return; }
 

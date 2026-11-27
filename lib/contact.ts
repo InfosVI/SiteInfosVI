@@ -1,7 +1,7 @@
 import { lt } from 'drizzle-orm';
 import { getDb, schema } from './db';
 
-export const CONSERVATION_JOURS = 60, DELAI_H = 12, MAX_TEXTE = 1000;
+export const CONSERVATION_JOURS = 60, DELAI_H = 12, MAX_TEXTE = 2500;
 
 /** Efface les messages de plus de 60 jours et les limites d'envoi de plus de 12 h */
 export async function nettoyerContact() {
