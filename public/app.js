@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.0', d:'', items:['Comparaison entre pays : la carte et le classement s’affichent de nouveau à l’ouverture de la page']},
   {v:'1.8.1', d:'', items:['Espace admin : les boutons « Supprimer » et « Actualiser » du module Messages fonctionnent de nouveau']},
   {v:'1.8.0', d:'', items:['Propositions et votes ouverts : proposez une valeur d’indemnité pas encore publiée et votez pour celles des autres (sans compte, avec vérification anti-robot) ; la valeur retenue est validée par l’administrateur']},
   {v:'1.7.1', d:'', items:['Accueil : présentation plus claire de ce que propose le site']},
@@ -626,7 +627,7 @@ V.comparaison = ()=>{
 
 async function mountComparaison(){
   try{ await cmpLoad(); } catch(e){ $('#cmpMap').innerHTML='<p class="muted" style="padding:20px;margin:0">Carte indisponible (connexion).</p>'; return; }
-  if(location.hash!=='#comparaison') return;
+  if(vueCourante()!=='comparaison') return;
   const vk=CMP_VALS[st.cmpV]?st.cmpV:'eur', V=CMP_VALS[vk], ms=cmpMonths(), m=ms.includes(st.cmpM)?st.cmpM:cmpDefaultMonth(vk), D2=cmpData();
   // Valeurs à la date choisie
   const vals=D2.zones.map(z=>({z, x:cmpMetric(z,vk,m)})).filter(o=>o.x).sort((a,b)=>b.x.v-a.x.v);
