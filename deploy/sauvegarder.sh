@@ -32,6 +32,18 @@ ls -1t "$DOSSIER"/site-*.sql.gz | tail -n +8 | xargs -r rm -f
 ls -1t "$DOSSIER"/env-* | tail -n +8 | xargs -r rm -f
 echo "$(date -u +%FT%TZ) Sauvegarde locale $NOM ($(du -h "$DOSSIER/$NOM" | cut -f1))" >> /var/log/indemnite-sauvegarde.log
 
+# Dernière sauvegarde mise à disposition de l'administrateur, pour la récupérer depuis son ordinateur (connexion SSH,
+# lancée par l'ordinateur : le serveur, lui, ne peut joindre aucun ordinateur). Contient aussi la configuration (.env).
+U="${SAUVEGARDE_UTILISATEUR:-ubuntu}"
+if id "$U" >/dev/null 2>&1; then
+  D="$(getent passwd "$U" | cut -d: -f6)/sauvegardes"; install -d -m 700 -o "$U" -g "$U" "$D"
+  cp "$DOSSIER/$NOM" "$D/site.sql.gz"
+  [ -f "$DOSSIER/stats-${NOM#site-}" ] && cp "$DOSSIER/stats-${NOM#site-}" "$D/stats.sql.gz"
+  cp .env "$D/env"; [ -d config-site ] && cp config-site/site.json "$D/site.json" 2>/dev/null || true
+  date -u +%FT%TZ > "$D/date.txt"
+  chown "$U:$U" "$D"/*; chmod 600 "$D"/*
+fi
+
 # Copie chiffrée hors du serveur (activée quand le stockage distant est configuré)
 if [ -n "${RESTIC_REPOSITORY:-}" ] && [ -n "${RESTIC_PASSWORD:-}" ]; then
   docker run --rm -e RESTIC_REPOSITORY -e RESTIC_PASSWORD -e B2_ACCOUNT_ID -e B2_ACCOUNT_KEY \

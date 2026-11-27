@@ -92,6 +92,14 @@ Umami redémarre avec chaque mise à jour.
 
 ## Sauvegardes hors du serveur (à activer ensuite)
 
+**Solution simple : récupérer les sauvegardes sur son ordinateur.** Après chaque sauvegarde, la dernière copie (base du
+site, statistiques, configuration) est déposée dans `~/sauvegardes` de l'utilisateur SSH (`ubuntu` par défaut,
+réglable par `SAUVEGARDE_UTILISATEUR` dans `.env`), lisible par lui seul. L'ordinateur la récupère par SSH, par exemple
+chaque jour avec une tâche planifiée : `scp -i <clé> ubuntu@<serveur>:sauvegardes/* <dossier>`. C'est l'ordinateur
+qui se connecte au serveur, jamais l'inverse.
+
+**Ou, en plus : copie chiffrée automatique vers un stockage en ligne (Backblaze B2).**
+
 Copie chiffrée chaque nuit vers Backblaze B2 (quasi gratuit) : 30 copies quotidiennes, puis une par mois pendant 6 mois.
 
 1. Sur backblaze.com : créer un compte, un compartiment (bucket) **privé**, puis une clé d'application limitée à ce
