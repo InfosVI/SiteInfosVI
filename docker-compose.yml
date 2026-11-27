@@ -24,6 +24,7 @@ services:
   caddy:
     <<: *journaux
     image: caddy:2.10-alpine
+    security_opt: [no-new-privileges:true]
     restart: unless-stopped
     ports: ["80:80", "443:443", "443:443/udp"]
     environment:
@@ -75,6 +76,7 @@ services:
   base:
     <<: *journaux
     image: postgres:17-alpine
+    security_opt: [no-new-privileges:true]
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${MDP_BASE_ADMIN}
@@ -98,6 +100,7 @@ services:
   umami:
     <<: *journaux
     image: ghcr.io/umami-software/umami:3.5.0
+    security_opt: [no-new-privileges:true]
     profiles: [stats]
     restart: unless-stopped
     environment:
@@ -115,6 +118,7 @@ services:
   # Tâches lancées à heure fixe par le serveur (docker compose run --rm …), puis arrêtées
   collecte:
     image: ghcr.io/${GITHUB_PROPRIETAIRE}/indemnite-outils:${IMAGE_TAG:-latest}
+    security_opt: [no-new-privileges:true]
     profiles: [taches]
     environment:
       DATABASE_URL: postgres://site:${MDP_BASE_SITE}@base:5432/site
@@ -126,6 +130,7 @@ services:
 
   outils:
     image: ghcr.io/${GITHUB_PROPRIETAIRE}/indemnite-outils:${IMAGE_TAG:-latest}
+    security_opt: [no-new-privileges:true]
     profiles: [taches]
     environment:
       DATABASE_URL: postgres://site:${MDP_BASE_SITE}@base:5432/site

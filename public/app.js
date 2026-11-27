@@ -247,6 +247,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.6.0', d:'', items:['Sécurité renforcée : la carte, le PDF et la vérification anti-robot sont servis par le site lui-même (plus aucun service tiers), protections supplémentaires de l’espace admin et du serveur']},
   {v:'1.5.0', d:'', items:['Page « Dons pour l’hébergement » : coûts affichés tels qu’ils ont été payés, en $ CA et en $ US (sans conversion), augmentant chaque mois']},
   {v:'1.4.0', d:'', items:['Formulaire de contact ouvert : protégé par une vérification anti-robot (ALTCHA, hébergée sur le serveur du site), un message toutes les 12 heures, messages effacés après 60 jours','Mentions légales : coordonnées de l’hébergeur complétées','Statistiques de visite plus fiables : les robots sont mieux distingués des visiteurs (temps passé sur la page et interactions) ; page Confidentialité précisée (seul le réseau d’origine est gardé, tronqué)']},
   {v:'1.3.0', d:'', items:['Vous pouvez désormais soutenir le site par un don, entièrement facultatif, via Liberapay : nouvelle page « Dons pour l’hébergement » (lien en bas de page), avec les coûts réels d’hébergement depuis le début du site']},
@@ -473,7 +474,7 @@ function histPeriod(){ const [a,b]=histRange(), ms=H.months.filter(m=>m<=CURRENT
 /* ---------- Historique : « Graph recap » en PDF (paysage, 1 graphique par page) ---------- */
 let jsPDFLoading=null;
 /* ===== Captcha ALTCHA (hébergé sur le serveur du site ; la maquette n'a pas de serveur : mode test) ===== */
-const ALTCHA_JS='/altcha.js', ALTCHA_CHALLENGE='/api/altcha';
+const ALTCHA_JS='/lib/altcha.js', ALTCHA_CHALLENGE='/api/altcha';
 let altchaLoading=null;
 const postJson=(u,b,method='POST')=>fetch(u,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(b),credentials:'same-origin'}).then(r=>r.json());
 function loadAltcha(){ if(customElements.get('altcha-widget')) return; altchaLoading ??= (()=>{ const sc=document.createElement('script'); sc.type='module'; sc.src=ALTCHA_JS; document.head.appendChild(sc); return true; })(); }
@@ -485,7 +486,7 @@ const captchaReset=id=>{ try{ document.getElementById(id)?.reset?.(); }catch(e){
 function loadJsPDF(){
   if(window.jspdf) return Promise.resolve(window.jspdf.jsPDF);
   return jsPDFLoading ??= new Promise((ok,ko)=>{ const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=()=>ok(window.jspdf.jsPDF); s.onerror=()=>{ jsPDFLoading=null; ko(new Error('jsPDF')); }; document.head.appendChild(s); });
+    s.src='/lib/jspdf.umd.min.js'; s.onload=()=>ok(window.jspdf.jsPDF); s.onerror=()=>{ jsPDFLoading=null; ko(new Error('jsPDF')); }; document.head.appendChild(s); });
 }
 // Texte compatible avec les polices standard du PDF (espaces insécables, signes non latins)
 const pdfTxt=s=>String(s).replace(/[  ]/g,' ').replace(/→/g,'->').replace(/≈/g,'~').replace(/−/g,'-').replace(/·/g,'-');
@@ -571,8 +572,8 @@ const CMP_PAL=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e37
 let cmpLibs=null, cmpTopo=null;
 function loadScript(src){ return new Promise((ok,ko)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=ko; document.head.appendChild(s); }); }
 function cmpLoad(){ return cmpLibs ??= Promise.all([
-  window.d3?null:loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js'),
-  ]).then(()=>window.topojson?null:loadScript('https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js'))
+  window.d3?null:loadScript('/lib/d3.min.js'),
+  ]).then(()=>window.topojson?null:loadScript('/lib/topojson.min.js'))
     .then(()=>fetch(CMP_MAP_URL).then(r=>r.json())).then(t=>{ cmpTopo=t; }); }
 const CMP_MAP_URL='countries-50m.json';
 // Toutes les séries mensuelles, par zone (mises en cache par mode VIE / VIA)
@@ -1758,7 +1759,7 @@ document.addEventListener('submit',e=>{
   e.preventDefault();
   if(e.target.id==='login'){ apiPost('/api/admin/login',{email:$('#aemail').value,password:$('#apass').value}).then(async r=>{
       if(r.blocked) return blockNow(r.until);
-      if(!r.ok){ toast('Email ou mot de passe incorrect.'); return; }
+      if(!r.ok){ toast(/réseau/.test(r.error||'')?r.error:'Email ou mot de passe incorrect.'); return; }
       await loadAdmin(); render(); }); return; }
   if(e.target.id==='manual'){ const raw=$('#mval').value.trim(); if(!raw){ toast('Indiquez un montant en € ou une variation en %.'); return; }
     const mf=st.mf, src=$('#msrc').value.trim()||'saisie admin';

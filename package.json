@@ -1,6 +1,6 @@
 {
   "name": "site-indemnite-vi",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -8,7 +8,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "altcha": "node -e \"require('fs').copyFileSync('node_modules/altcha/dist/main/altcha.i18n.min.js','public/altcha.js')\"",
+    "bibliotheques": "node scripts/copier-bibliotheques.mjs",
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
@@ -17,19 +17,22 @@
     "db:seed": "tsx scripts/seed.ts",
     "collecte": "tsx scripts/collecte.ts",
     "verifier:piste": "tsx scripts/verifier-piste.ts",
-    "predev": "npm run -s altcha",
-    "prebuild": "npm run -s altcha"
+    "predev": "npm run -s bibliotheques",
+    "prebuild": "npm run -s bibliotheques"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.6.0",
     "@node-rs/argon2": "2.2.2",
     "altcha": "3.5.0",
     "altcha-lib": "2.8.0",
+    "d3": "7.9.0",
     "drizzle-orm": "0.45.4",
+    "jspdf": "4.2.1",
     "next": "16.4.6",
     "pg": "8.23.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "topojson": "3.0.2",
     "zod": "4.6.7"
   },
   "devDependencies": {

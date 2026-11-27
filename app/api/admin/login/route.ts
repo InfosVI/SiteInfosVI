@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { blockedUntil, blockedResponse, checkPassword, clientKeys, idCookie, recordFailure, sessionCookie } from '@/lib/auth';
+import { blockedUntil, blockedResponse, checkPassword, clientKeys, idCookie, recordFailure, reseauSature, sessionCookie } from '@/lib/auth';
 import { sameOrigin } from '@/lib/admin-api';
 
 const Body = z.object({ email: z.string().max(200), password: z.string().max(200) });
@@ -8,6 +8,7 @@ export async function POST(req: Request) {
   if (!sameOrigin(req)) return Response.json({ error: 'origine refusée' }, { status: 403 });
   const until = await blockedUntil(req);
   if (until) return blockedResponse(until);
+  if (await reseauSature(req)) return Response.json({ ok: false, error: 'Trop d’essais de connexion depuis ce réseau : réessayez dans une heure.' }, { status: 429, headers: { 'Retry-After': '3600' } });
   const k = clientKeys(req), headers = new Headers();
   if (k.isNew) headers.append('Set-Cookie', idCookie(k.cookieId));
   const p = Body.safeParse(await req.json().catch(() => null));

@@ -9,8 +9,8 @@ RUN npm ci --ignore-scripts && npm rebuild esbuild
 FROM deps AS build
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Widget du captcha ALTCHA, servi par le site lui-même (aucun service tiers)
-RUN cp node_modules/altcha/dist/main/altcha.i18n.min.js public/altcha.js && npx next build
+# Bibliothèques du navigateur (captcha, carte, PDF) servies par le site lui-même : aucun service tiers
+RUN node scripts/copier-bibliotheques.mjs && npx next build
 
 # ---------- Site : uniquement ce qui sert à afficher les pages ----------
 FROM node:26-bookworm-slim AS site

@@ -27,7 +27,8 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Widget ALTCHA copié depuis node_modules au démarrage et à la construction
+# Bibliothèques du navigateur copiées depuis node_modules au démarrage et à la construction
+public/lib/
 public/altcha.js
 
 # Base locale de développement

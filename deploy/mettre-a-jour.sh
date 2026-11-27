@@ -26,6 +26,11 @@ if ! docker compose pull -q site outils collecte; then
   journal "Téléchargement impossible : retour à $ACTUELLE"
   git -c advice.detachedHead=false checkout -q "$ACTUELLE"; sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG='$ACTUELLE'/" .env; exit 1
 fi
+# Correctifs de sécurité des autres services (même version majeure : caddy 2.10, postgres 17, umami figé)
+docker compose pull -q caddy base >/dev/null 2>&1 || journal "Attention : correctifs de Caddy/PostgreSQL non téléchargés"
+[ -n "${UMAMI_WEBSITE_ID:-}" ] && { docker compose --profile stats pull -q umami >/dev/null 2>&1 || true; }
+docker compose up -d base >/dev/null
+until docker compose exec -T base pg_isready -U postgres >/dev/null 2>&1; do sleep 2; done
 docker compose run --rm outils npx tsx scripts/migrer.ts
 docker compose up -d caddy site apercu   # l'aperçu reçoit aussi la nouvelle configuration (variables du .env)
 [ -n "${UMAMI_WEBSITE_ID:-}" ] && docker compose --profile stats up -d umami >/dev/null || true   # mesure d'audience, si installée

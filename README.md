@@ -9,6 +9,24 @@ partir de **données publiques uniquement** (Journal officiel, Légifrance, BCE,
 - Aucune donnée personnelle dans ce dépôt (documents et secrets refusés par `.githooks/pre-commit` et par les tests).
 - Licence MIT.
 
+## Aperçu
+
+Captures d'une installation de démonstration (réglages neutres : le nom affiché vient de `config-site/site.json`).
+
+![Accueil : les modules](docs/captures/accueil.png)
+
+**Pouvoir d'achat VI** : indemnité du moment, conversion au taux de la BCE, inflation locale et pouvoir d'achat.
+
+![Pouvoir d'achat VI : vue d'ensemble](docs/captures/pouvoir-achat.png)
+
+| Historique | Grille des indemnités |
+|---|---|
+| ![Historique](docs/captures/historique.png) | ![Grille des indemnités](docs/captures/grille.png) |
+
+| Comparaison entre pays | Méthodologie |
+|---|---|
+| ![Comparaison entre pays](docs/captures/comparaison.png) | ![Méthodologie](docs/captures/methodologie.png) |
+
 ## 1. Ce qu'il faut installer
 
 ### Pour travailler sur le site (ordinateur de développement)

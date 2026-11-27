@@ -44,6 +44,19 @@ export async function blockedUntil(req: Request): Promise<Date | null> {
   return rows.length ? new Date(Math.max(...rows.map((r: any) => +new Date(r.jusqua)))) : null;
 }
 
+/**
+ * Limite par réseau, pour la connexion admin seulement : un robot qui change de cookie et de navigateur à chaque essai
+ * contourne le blocage ci-dessous ; au-delà de quelques dizaines d'échecs en 1 h depuis la même adresse (rendue
+ * illisible), les essais de connexion sont refusés pendant 1 h. Le reste du site reste accessible à ce réseau.
+ */
+const ECHECS_RESEAU_MAX = 20;
+export async function reseauSature(req: Request) {
+  const k = clientKeys(req), db = await getDb() as any;
+  const recent = await db.select().from(schema.tentatives)
+    .where(and(gt(schema.tentatives.at, new Date(Date.now() - WINDOW_MS)), eq(schema.tentatives.ipHash, k.ipHash))).limit(ECHECS_RESEAU_MAX);
+  return recent.length >= ECHECS_RESEAU_MAX;
+}
+
 /** Enregistre un échec ; bloque 48 h au 5e échec en 1 h */
 export async function recordFailure(req: Request) {
   const k = clientKeys(req), db = await getDb() as any;
