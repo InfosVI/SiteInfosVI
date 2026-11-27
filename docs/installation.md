@@ -92,13 +92,11 @@ Umami redémarre avec chaque mise à jour.
 
 ## Sauvegardes hors du serveur (à activer ensuite)
 
-Ajouter dans `/opt/indemnite/.env` les accès au stockage distant (ex. Backblaze B2) et une clé de chiffrement :
+Copie chiffrée chaque nuit vers Backblaze B2 (quasi gratuit) : 30 copies quotidiennes, puis une par mois pendant 6 mois.
 
-```
-RESTIC_REPOSITORY='b2:nom-du-compartiment:indemnite'
-RESTIC_PASSWORD='…'   # clé de chiffrement : en garder une copie hors du serveur, sinon les sauvegardes sont illisibles
-B2_ACCOUNT_ID='…'
-B2_ACCOUNT_KEY='…'
-```
-
-Puis initialiser une fois : `docker run --rm --env-file /opt/indemnite/.env restic/restic:0.18.0 init`.
+1. Sur backblaze.com : créer un compte, un compartiment (bucket) **privé**, puis une clé d'application limitée à ce
+   compartiment, avec l'accès « Read and Write ».
+2. Sur le serveur : `cd /opt/indemnite && sudo bash deploy/installer-sauvegarde.sh` — le script demande le nom du
+   compartiment et la clé, envoie une première copie et vérifie qu'on sait la relire.
+3. **Garder la clé de chiffrement affichée à la fin hors du serveur** (gestionnaire de mots de passe) : sans elle, les
+   copies sont illisibles.
