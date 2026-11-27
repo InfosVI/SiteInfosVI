@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.3', d:'', items:['Feuille de route : l’affichage optimisé pour smartphones devient la priorité']},
   {v:'1.9.2', d:'', items:['Formulaire de contact : messages jusqu’à 2 500 caractères']},
   {v:'1.9.1', d:'', items:['Feuille de route revue : organisée par module à venir (Épargne, Fiscalité, Logement, Frais de voyage, Assurance santé, Fin de VI, Témoignages, Carte du monde)']},
   {v:'1.9.0', d:'', items:['Comparaison entre pays : la carte et le classement s’affichent de nouveau à l’ouverture de la page']},
@@ -264,6 +265,8 @@ const NEWS=[
   {v:'1.0.0', d:'', items:['Première version officielle du site : Pouvoir d’achat VI (vue d’ensemble, historique avec PDF récapitulatif, grille des indemnités, comparaison entre pays, méthodologie)','Statistiques de visite : mesure d’audience installée sur le serveur du site, refusable à tout moment dans la page Confidentialité']},
 ];
 const ROADMAP=[
+  {t:'Priorité : affichage sur smartphone', items:[
+    ['Affichage optimisé pour smartphones','Toutes les pages pensées d’abord pour le téléphone : menus, tableaux, graphiques, carte et formulaires faciles à lire et à utiliser sur un petit écran.']]},
   {t:'Pouvoir d’achat VI : améliorations', items:[
     ['Comparer à ma zone','Chaque pays affiché en écart par rapport à votre zone (ex. « +12 % de plus qu’à Montréal »), sur la carte, dans le classement et dans le graphique de la comparaison entre pays.']]},
   {t:'Module Épargne en VI', items:[
