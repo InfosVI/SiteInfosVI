@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.1', d:'', items:['Feuille de route revue : organisée par module à venir (Épargne, Fiscalité, Logement, Frais de voyage, Assurance santé, Fin de VI, Témoignages, Carte du monde)']},
   {v:'1.9.0', d:'', items:['Comparaison entre pays : la carte et le classement s’affichent de nouveau à l’ouverture de la page']},
   {v:'1.8.1', d:'', items:['Espace admin : les boutons « Supprimer » et « Actualiser » du module Messages fonctionnent de nouveau']},
   {v:'1.8.0', d:'', items:['Propositions et votes ouverts : proposez une valeur d’indemnité pas encore publiée et votez pour celles des autres (sans compte, avec vérification anti-robot) ; la valeur retenue est validée par l’administrateur']},
@@ -262,37 +263,41 @@ const NEWS=[
   {v:'1.0.0', d:'', items:['Première version officielle du site : Pouvoir d’achat VI (vue d’ensemble, historique avec PDF récapitulatif, grille des indemnités, comparaison entre pays, méthodologie)','Statistiques de visite : mesure d’audience installée sur le serveur du site, refusable à tout moment dans la page Confidentialité']},
 ];
 const ROADMAP=[
-  {t:'Contenu pratique', items:[
-    ['Pages pratiques','Avertissements, checklists à cocher, FAQ, impression ou enregistrement en PDF, source et date de mise à jour.'],
-    ['Module Fin de VI','Droits au retour, démarches administratives, conseils pour la recherche d’emploi.'],
-    ['Module Assurance santé April en VI','Garanties en clair, guides pour se faire rembourser, questions fréquentes.'],
-    ['Module Fiscalité du VI','Statut fiscal du VIE, démarches en France et dans le pays d’accueil, calendrier des échéances, FAQ.']]},
-  {t:'Outils et simulateurs', items:[
+  {t:'Pouvoir d’achat VI : améliorations', items:[
+    ['Comparer à ma zone','Chaque pays affiché en écart par rapport à votre zone (ex. « +12 % de plus qu’à Montréal »), sur la carte, dans le classement et dans le graphique de la comparaison entre pays.'],
+    ['Export du graphique','Un bouton pour enregistrer le graphique « Évolution dans le temps » de la comparaison entre pays en image ou en PDF.']]},
+  {t:'Module Épargne en VI', items:[
+    ['Simulateur « Ce qu’il me reste »','Épargne possible chaque mois et sur toute la durée du VIE, selon la ville et vos dépenses (rien n’est enregistré).'],
+    ['Comparateur d’épargne entre pays','Quel pays permet de mettre le plus d’argent de côté, à partir des loyers et du coût de la vie partagés par la communauté.']]},
+  {t:'Module Fiscalité du VI', items:[
+    ['Statut fiscal et démarches','Statut fiscal du VIE, démarches en France et dans le pays d’accueil, calendrier des échéances (Canada en premier), questions fréquentes.'],
     ['Quiz « Où dois-je déclarer ? »','Quelques questions pour trouver la bonne démarche fiscale.'],
-    ['Simulateur « Ce qu’il me reste »','Épargne possible chaque mois et sur toute la durée du VIE, selon la ville et vos dépenses.'],
-    ['Logement : conseils et pièges à éviter','Bail, dépôt, colocation, arnaques courantes.'],
-    ['Comparaison entre pays : comparer à ma zone','Chaque pays affiché en écart par rapport à votre zone (ex. « +12 % de plus qu’à Montréal »), sur la carte, dans le classement et dans le graphique.'],
-    ['Comparaison entre pays : export du graphique','Un bouton pour enregistrer le graphique « Évolution dans le temps » en image ou en PDF.']]},
-  {t:'Contributions de la communauté', items:[
-    ['Contributions pour tous les modules','Le système de propositions et de votes étendu à d’autres données.'],
-    ['Modérateurs','Des volontaires peuvent aider à valider les données de leur pays.'],
-    ['Couverture des données par pays','Pourcentage de données disponibles et liste de celles qui manquent.']]},
-  {t:'Données de la communauté', items:[
-    ['Loyers indicatifs par ville','Loyer médian et fourchette selon le type de logement.'],
-    ['Comparateur d’épargne entre pays','Quel pays permet de mettre le plus d’argent de côté ?'],
-    ['Délais de remboursement April','Délais constatés par type de soin et par pays.'],
-    ['Pratiques des entreprises pour le logement','Logement fourni, prime, remboursement : la répartition par pays et par secteur.'],
     ['FAQ fiscale communautaire','Questions et réponses entre volontaires.']]},
-  {t:'Témoignages et avis', items:[
+  {t:'Module Logement en VI et remboursement par l’entreprise', items:[
+    ['Conseils et pièges à éviter','Bail, dépôt de garantie, colocation, arnaques courantes.'],
+    ['Loyers indicatifs par ville','Loyer médian et fourchette selon le type de logement, partagés par la communauté.'],
+    ['Pratiques des entreprises','Logement fourni, prime ou remboursement : la répartition par pays et par secteur.']]},
+  {t:'Module Remboursement des frais de bagages et transports en VI', items:[
+    ['Frais de voyage et de bagages','Ce qui peut être pris en charge, les démarches et les justificatifs à garder, avec les textes officiels.']]},
+  {t:'Module Assurance santé April en VI', items:[
+    ['Garanties et remboursements','Garanties en clair, guides pour se faire rembourser (consultation, pharmacie, urgences, hospitalisation), questions fréquentes.'],
+    ['Délais de remboursement','Délais constatés par type de soin et par pays, partagés par la communauté.']]},
+  {t:'Module Fin de VI', items:[
+    ['Guide de fin de mission','Droits au retour, attestation de fin de mission, démarches administratives, conseils pour la recherche d’emploi.']]},
+  {t:'Module Témoignages de VI', items:[
     ['Témoignages structurés','Expériences de mission, notes et conseils, publiés de façon anonyme.'],
     ['Filtres et recherche','Par pays, ville, secteur et note.'],
     ['Notes par ville','Coût de la vie ressenti, logement, ambiance, intégration.']]},
-  {t:'Carte du monde', items:[
-    ['Carte interactive','Indemnité, coût de la vie, pouvoir d’achat et épargne, pays par pays.'],
-    ['Couverture des données sur la carte','Les pays où il manque des données.'],
-    ['Mini-cartes dans les modules','Une carte réduite là où elle aide.']]},
+  {t:'Module Carte du monde des VI', items:[
+    ['Carte de toutes les données','Épargne, loyers, notes des témoignages… pays par pays, en plus de l’indemnité et du pouvoir d’achat déjà sur la carte de comparaison.'],
+    ['Couverture des données sur la carte','Les pays où il manque des données, pour savoir où contribuer.']]},
+  {t:'Pour tous les modules', items:[
+    ['Pages pratiques','Avertissements, checklists à cocher, questions fréquentes, impression ou enregistrement en PDF, source et date de mise à jour.'],
+    ['Contributions étendues','Les propositions et votes, déjà ouverts pour l’indemnité, étendus aux autres données (loyers, délais, pratiques…).'],
+    ['Modérateurs','Des volontaires peuvent aider à valider les données de leur pays.'],
+    ['Couverture des données par pays','Pourcentage de données disponibles et liste de celles qui manquent.']]},
 ];
-const ROADMAP_IDEAS=['Page « Contributeurs » pour remercier les personnes qui ajoutent des données'];
+const ROADMAP_IDEAS=['Page « Contributeurs » pour remercier les personnes qui ajoutent des données','Mini-cartes dans les modules, là où une carte aide à comprendre'];
 const roadmapFlat=()=>ROADMAP.flatMap((ph,pi)=>ph.items.map(([t,d])=>({ph:ph.t,pi,t,d})));
 const newsList=n=>NEWS.slice(0,n).map(x=>`<li><strong class="num">Version ${x.v}</strong>${x.d?` <span class="muted small">· ${fmtDay(x.d)}</span>`:''}<ul style="margin:2px 0 0;padding-left:18px">${x.items.map(i=>`<li>${i}</li>`).join('')}</ul></li>`).join('');
 V.roadmap = ()=>{ let k=0; return `<section class="view"><h1>Nouveautés et feuille de route</h1>
