@@ -248,7 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
-  {v:'1.9.5', d:'', items:['Administration du serveur : sauvegarde téléchargeable en une ligne (archive nommée avec la date et les versions), changement du mot de passe de l’aperçu privé']},
+  {v:'1.9.5', d:'', items:['Administration du serveur : sauvegarde complète à télécharger à tout moment, en une archive nommée avec la date et les versions, et commande pour changer le mot de passe de l’aperçu privé']},
   {v:'1.9.4', d:'', items:['Nouvelle icône du site (carré bleu « € ») pour les onglets du navigateur, les résultats de recherche et l’écran d’accueil des téléphones']},
   {v:'1.9.3', d:'', items:['Feuille de route : l’affichage optimisé pour smartphones devient la priorité']},
   {v:'1.9.2', d:'', items:['Formulaire de contact : messages jusqu’à 2 500 caractères']},
