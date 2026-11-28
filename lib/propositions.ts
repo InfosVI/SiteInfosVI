@@ -109,8 +109,8 @@ export async function reinitialiserVotes(cles: { votant: string }) {
   if (ouvertes.length) await db.delete(schema.votes).where(and(eq(schema.votes.votant, cles.votant), inArray(schema.votes.propositionId, ouvertes)));
 }
 
-/** Actions de l'administrateur : valider, dévalider, rejeter, remettre en attente */
-export async function moderer(id: number, action: 'valider' | 'devalider' | 'rejeter' | 'rouvrir') {
+/** Actions de l'administrateur : valider, dévalider, rejeter, remettre en attente, supprimer (définitif) */
+export async function moderer(id: number, action: 'valider' | 'devalider' | 'rejeter' | 'rouvrir' | 'supprimer') {
   const db = await getDb() as any;
   const [p] = await db.select().from(schema.propositions).where(eq(schema.propositions.id, id));
   if (!p) return { erreur: 'Proposition introuvable.' };
@@ -125,6 +125,15 @@ export async function moderer(id: number, action: 'valider' | 'devalider' | 'rej
     await set(p, 'validee', 0);
     await addHistory({ auteur: 'Administrateur', origine: 'val', donnee: p.type, cle: p.zone, periode: p.eff, avant: prev ? num(prev.valeur) : null, apres: num(p.valeur),
       brut: String(p.valeur), controles: [], enregistree: true, source: `proposition communautaire (${votesTxt})` });
+  } else if (action === 'supprimer') {
+    // Une valeur validée est d'abord dévalidée (les propositions rejetées automatiquement repassent en attente)
+    if (p.statut === 'validee') {
+      for (const q of autres) if (q.auto) await set(q, 'attente', 0);
+      await addHistory({ auteur: 'Administrateur', origine: 'unval', donnee: p.type, cle: p.zone, periode: p.eff, avant: num(p.valeur), apres: null,
+        brut: '', controles: [], enregistree: true, source: 'proposition validée supprimée' });
+    }
+    await db.delete(schema.votes).where(eq(schema.votes.propositionId, p.id));
+    await db.delete(schema.propositions).where(eq(schema.propositions.id, p.id));
   } else if (action === 'devalider') {
     if (p.statut !== 'validee') return { erreur: 'Cette proposition n’est pas validée.' };
     await set(p, 'attente', 0);

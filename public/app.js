@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.6', d:'', items:['Espace admin : suppression définitive d’une proposition ; journal des requêtes rangé par jour de la requête, avec les imports lancés à la main signalés']},
   {v:'1.9.5', d:'', items:['Administration du serveur : sauvegarde complète à télécharger à tout moment, en une archive nommée avec la date et les versions, et commande pour changer le mot de passe de l’aperçu privé']},
   {v:'1.9.4', d:'', items:['Nouvelle icône du site (carré bleu « € ») pour les onglets du navigateur, les résultats de recherche et l’écran d’accueil des téléphones']},
   {v:'1.9.3', d:'', items:['Feuille de route : l’affichage optimisé pour smartphones devient la priorité']},
@@ -995,16 +996,17 @@ function adminProposals(){
   const groups={}; shown.forEach(p=>{ (groups[groupKey(p)]??=[]).push(p); });
   const keys=Object.keys(groups).sort((a,b)=>b.split('|')[2].localeCompare(a.split('|')[2])||a.localeCompare(b));
   const pill=p=>p.s===VAL?'<span class="pill ok">Validée</span>':p.s==='Rejetée'?`<span class="pill">${p.auto?'Rejetée (auto)':'Rejetée'}</span>`:'<span class="pill mid">En attente</span>';
-  const act=p=>p.s===VAL?`<button class="btn ghost" type="button" data-unval="${p.i}">Dévalider</button>`
+  const act=p=>(p.s===VAL?`<button class="btn ghost" type="button" data-unval="${p.i}">Dévalider</button>`
     :p.s==='En attente'?`<button class="btn ok" type="button" data-val="${p.i}">Valider</button><button class="btn no" type="button" data-rej="${p.i}">Rejeter</button>`
-    :`<button class="btn ghost" type="button" data-reopen="${p.i}">Remettre en attente</button>`;
+    :`<button class="btn ghost" type="button" data-reopen="${p.i}">Remettre en attente</button>`)
+    +`<button class="btn ghost" type="button" data-delprop="${p.i}" title="Supprimer définitivement cette proposition et ses votes">Supprimer</button>`;
   const body=keys.map(k=>{ const g=groups[k].sort((a,b)=>(b.up-b.down)-(a.up-a.down)), [t,z,eff]=k.split('|'), hasVal=st.proposals.some(q=>groupKey(q)===k&&q.s===VAL);
     return `<tr class="ghead"><th colspan="5"><strong>${partLab(t)}</strong> · ${esc(zLab(z))} · valable à partir du <strong>${d1(eff)}</strong>
         <span class="small muted" style="font-weight:400"> — ${g.length} proposition(s)${hasVal?' · une valeur validée':''} · valeur de référence : ${fmt(g[0].refGeo)} € (${d1(g[0].ref)})</span></th></tr>`
       +g.map(p=>`<tr class="${p.s===VAL?'cur':''}"><td class="num">${propLine(p,true)}</td><td class="r num">▲ ${p.up} · ▼ ${p.down}<br><span class="small muted">score ${p.up-p.down}</span></td><td>${pill(p)}</td><td><span style="display:flex;gap:6px;flex-wrap:wrap">${act(p)}</span></td></tr>`).join(''); }).join('');
   return `<div class="panel"><h2>Propositions de la communauté</h2>
     ${filters}
-    <ul class="small muted" style="margin:0;padding-left:18px"><li>Une seule valeur peut être validée par partie, zone et date : valider rejette automatiquement les autres (« Rejetée (auto) »).</li><li>« Dévalider » remet la valeur en attente, ainsi que celles rejetées automatiquement.</li></ul>
+    <ul class="small muted" style="margin:0;padding-left:18px"><li>Une seule valeur peut être validée par partie, zone et date : valider rejette automatiquement les autres (« Rejetée (auto) »).</li><li>« Dévalider » remet la valeur en attente, ainsi que celles rejetées automatiquement.</li><li>« Supprimer » efface définitivement la proposition et ses votes (une valeur validée est d’abord dévalidée).</li></ul>
     <div class="tscroll"><table class="list atab"><thead><tr><th>Valeur proposée</th><th class="r">Votes</th><th>Statut</th><th>Action</th></tr></thead><tbody>${body||'<tr><td colspan="4" class="muted">Aucune proposition pour ces filtres.</td></tr>'}</tbody></table></div></div>`;
 }
 /* Admin : historique des modifications de valeurs (import JO, validation communautaire, saisie admin, rétablissement).
@@ -1104,14 +1106,15 @@ function curUsers(){ if(st.curU) return st.curU; const u={}; allZ().forEach(z=>{
 function apiRows(){
   if(st.apiRowsC) return st.apiRowsC; const R=[], U=curUsers();
   for(const e of (JL?JL.entries:[])){
-    const day=(e.concerne&&e.concerne.length>=10?e.concerne:e.at).slice(0,10);
+    const day=e.at.slice(0,10);   // jour de la requête : le journal liste des requêtes (la date des données est dans la ligne)
+    const manuel=e.logs.some(l=>/à la main depuis l’espace admin/.test(l[2]||''));
     if(e.values.length) e.values.forEach((v,i)=>{ const isCur=e.type==='fx', u=isCur?(U[v.key]||[]):[];
-      R.push({e,v,i,day,status:v.checks.some(c=>!c.ok)?'check':e.status,
+      R.push({e,v,i,day,manuel,status:v.checks.some(c=>!c.ok)?'check':e.status,
         zone:isCur?v.key:(zoneLabel(v.key)||v.key), zsub:isCur?(u.length?u.slice(0,3).join(', ')+(u.length>3?` + ${u.length-3}`:''):'aucune zone suivie'):'',
         find:(isCur?v.key+' '+u.join(' '):zoneLabel(v.key)).toLowerCase()}); });
-    else R.push({e,v:null,day,status:e.status,zone:'Toutes les zones',zsub:'',find:'toutes les zones'});
+    else R.push({e,v:null,day,manuel,status:e.status,zone:'Toutes les zones',zsub:'',find:'toutes les zones'});
   }
-  R.sort((a,b)=>b.day.localeCompare(a.day)||b.e.at.localeCompare(a.e.at));
+  R.sort((a,b)=>b.e.at.localeCompare(a.e.at));
   return st.apiRowsC=R;
 }
 function importLog(){
@@ -1149,7 +1152,7 @@ function adminApiLog(){
   const ghtml=keys.slice(0,glim).map(k=>{ const rs=groups.get(k), nb=new Set(rs.filter(bad).map(r=>r.e.id)).size, gk=g+'|'+k, open=st.apiOpen&&st.apiOpen[gk]!=null?st.apiOpen[gk]:(nb>0||keys.length<=4||!!q), lim=more[gk]?rs.length:10;
     const sub=g==='zone'&&rs[0].zsub?` <span class="small muted">· ${esc(rs[0].zsub)}</span>`:'';
     return `<details class="apizone" data-ak="${esc(gk)}" ${open?'open':''}><summary><strong>${esc(k)}</strong>${sub} <span class="small muted">· ${rs.length} ligne${rs.length>1?'s':''}</span> ${nb?`<span class="pill bad">${nb} échec${nb>1?'s':''}</span>`:''}</summary>
-      <div class="tscroll"><table class="list apitab"><tbody>${rs.slice(0,lim).map(r=>{ const id=r.e.id+'.'+(r.v?r.i:'x'); return `<tr class="apirow${bad(r)?' apifail':''}" data-apid="${id}"><td class="num small">${dd[id]?'▾':'▸'} ${g==='date'?r.e.at.slice(11,16):dfr(r.day)}</td><td class="small">${g==='type'?esc(r.zone):esc(API_TYPES[r.e.type])}${g!=='type'&&g!=='zone'?' · '+esc(r.zone):''}</td><td>${r.e.status==='fail'?'<strong class="down">Non récupérée</strong>':val(r)}</td><td>${pill(r.status)}</td></tr>${dd[id]?det(r):''}`; }).join('')}</tbody></table></div>
+      <div class="tscroll"><table class="list apitab"><tbody>${rs.slice(0,lim).map(r=>{ const id=r.e.id+'.'+(r.v?r.i:'x'); return `<tr class="apirow${bad(r)?' apifail':''}" data-apid="${id}"><td class="num small">${dd[id]?'▾':'▸'} ${g==='date'?r.e.at.slice(11,16):dfr(r.day)}</td><td class="small">${g==='type'?esc(r.zone):esc(API_TYPES[r.e.type])}${g!=='type'&&g!=='zone'?' · '+esc(r.zone):''}</td><td>${r.e.status==='fail'?'<strong class="down">Non récupérée</strong>':val(r)}</td><td>${r.manuel?'<span class="pill" title="Lancé avec un bouton d’import de l’espace admin">Import manuel</span> ':''}${pill(r.status)}</td></tr>${dd[id]?det(r):''}`; }).join('')}</tbody></table></div>
       ${rs.length>10?`<button class="linkbtn small" type="button" data-apmore="${esc(gk)}">${more[gk]?'Réduire':'Afficher les '+(rs.length-10)+' autres'}</button>`:''}</details>`; }).join('');
   return `<div class="panel"><div class="phead" style="justify-content:space-between"><h2 style="margin:0">Journal des requêtes</h2><span class="small muted">Passage réel du ${atFr(JL.run.start)} UTC · ${esc(JL.run.from)}</span></div>
     ${fails.length?`<div class="apialert"><div><strong>${fails.length} problème${fails.length>1?'s':''} à traiter</strong><ul style="margin:4px 0 0;padding-left:18px">${fails.map(r=>`<li>${esc(r.e.src)} · ${esc(r.e.title)} : ${esc(r.e.err||API_ST[r.status][0])}${r.e.todo?`<br><span class="small"><strong>Que faire</strong> : ${esc(r.e.todo)}</span>`:''}</li>`).join('')}</ul></div></div>`:'<p class="up small" style="margin:0">✓ Aucun échec.</p>'}
@@ -1709,12 +1712,13 @@ document.addEventListener('click',e=>{
       if(d.ok) toast(sens===0?'Vote annulé : vous pouvez le placer ailleurs.':`Vote ${up?'positif':'négatif'} enregistré. Il vous reste ${up?st.quota.up:st.quota.down} vote(s) ${up?'positif':'négatif'}(s) pour 24 h.`);
       else { toast(d.error||'Vote impossible.'); if(d.captcha) captchaReset('vcap'); } render(); }).catch(()=>toast('Vote impossible : pas de réponse du serveur.')); return; }
   if(t.closest('#resetVotes')){ fetch('/api/propositions/vote',{method:'DELETE',credentials:'same-origin'}).then(r=>r.json()).then(d=>{ appliquerPropositions(d); toast('Vos votes ont été retirés.'); render(); }).catch(()=>toast('Action impossible : pas de réponse du serveur.')); return; }
-  const moderer=(el,action,msg)=>{ const p=st.proposals[+el.dataset[{valider:'val',devalider:'unval',rejeter:'rej',rouvrir:'reopen'}[action]]];
+  const moderer=(el,action,msg)=>{ const p=st.proposals[+el.dataset[{valider:'val',devalider:'unval',rejeter:'rej',rouvrir:'reopen',supprimer:'delprop'}[action]]];
     apiPost('/api/admin/propositions',{id:p.id,action}).then(async d=>{ if(d.blocked) return blockNow(d.until); if(d.ok){ await loadPropositions(); await loadAdmin(); toast(msg); } else toast(d.error||'Action impossible.'); render(); }).catch(()=>toast('Action impossible : pas de réponse du serveur.')); };
   const va=t.closest('[data-val]'); if(va){ moderer(va,'valider','Valeur validée : les autres propositions de cette partie, zone et date sont rejetées automatiquement.'); return; }
   const uv=t.closest('[data-unval]'); if(uv){ moderer(uv,'devalider','Valeur dévalidée : elle repasse en attente, avec les propositions rejetées automatiquement.'); return; }
   const ro=t.closest('[data-reopen]'); if(ro){ moderer(ro,'rouvrir','Proposition remise en attente.'); return; }
   const rj=t.closest('[data-rej]'); if(rj){ moderer(rj,'rejeter','Proposition rejetée.'); return; }
+  const dp=t.closest('[data-delprop]'); if(dp){ if(!confirm('Supprimer définitivement cette proposition et ses votes ?')) return; moderer(dp,'supprimer','Proposition supprimée.'); return; }
   if(t.closest('#capRun')){ apiPost('/api/admin/propositions/nettoyer',{}).then(async d=>{ if(d.blocked) return blockNow(d.until); await loadPropositions(); toast(d.retirees?`Nettoyage : ${d.retirees} proposition(s) retirée(s).`:'Nettoyage : rien à retirer.'); render(); }).catch(()=>toast('Nettoyage impossible : pas de réponse du serveur.')); return; }
   const hc=t.closest('[data-hchk]'); if(hc){ const k=hc.dataset.hchk; st.hDet[k]=!st.hDet[k]; render(); return; }
   const hr=t.closest('[data-hrest]'); if(hr){ const h=st.hist[+hr.dataset.hrest];

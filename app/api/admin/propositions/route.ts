@@ -3,7 +3,7 @@ import { guardAdmin, sameOrigin } from '@/lib/admin-api';
 import { moderer } from '@/lib/propositions';
 
 export const dynamic = 'force-dynamic';
-const Body = z.object({ id: z.number().int().positive(), action: z.enum(['valider', 'devalider', 'rejeter', 'rouvrir']) }).strict();
+const Body = z.object({ id: z.number().int().positive(), action: z.enum(['valider', 'devalider', 'rejeter', 'rouvrir', 'supprimer']) }).strict();
 
 /** Modération des propositions par l'administrateur */
 export async function POST(req: Request) {
