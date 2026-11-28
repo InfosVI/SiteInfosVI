@@ -22,7 +22,7 @@ const Body = z.object({
   valeur: z.number().finite(), source: z.string().max(300).optional().default(''), altcha: z.string().max(10_000),
 }).strict();
 
-/** Nouvelle proposition : captcha, une toutes les 12 h par visiteur pour un même type et une même zone, valeur de référence recalculée par le serveur */
+/** Nouvelle proposition : captcha, une toutes les 12 h par visiteur pour un même type, une même zone et une même date, valeur de référence recalculée par le serveur */
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return Response.json({ error: 'origine refusée' }, { status: 403 });
   const until = await blockedUntil(req); if (until) return blockedResponse(until);
@@ -34,12 +34,12 @@ export async function POST(req: Request) {
   if (b.type === 'geo' && !(await zonesAutorisees()).includes(b.z)) return Response.json({ error: 'Zone inconnue.' }, { status: 400, headers });
   if (!await captchaValide(b.altcha)) return Response.json({ error: 'Vérification anti-robot non valide : cochez-la à nouveau.' }, { status: 400, headers });
   const db = await getDb() as any;
-  const limite = clesLimite(b.type, b.type === 'fixe' ? 'TOUTES' : b.z, cles);
+  const limite = clesLimite(b.type, b.type === 'fixe' ? 'TOUTES' : b.z, b.eff, cles);
   const recent = await db.select().from(schema.contactLimites)
     .where(and(inArray(schema.contactLimites.cle, limite), gt(schema.contactLimites.at, new Date(Date.now() - DELAI_PROP_H * 3600_000)))).limit(1);
   if (recent.length) {
     const prochain = new Date(new Date(recent[0].at).getTime() + DELAI_PROP_H * 3600_000).toISOString();
-    return Response.json({ error: 'Une seule proposition toutes les 12 heures pour ce type de valeur et cette zone.', prochain }, { status: 429, headers });
+    return Response.json({ error: 'Une seule proposition toutes les 12 heures pour ce type de valeur, cette zone et cette date.', prochain }, { status: 429, headers });
   }
   const ref = await reference(b.type, b.z, b.eff);
   if (!ref) return Response.json({ error: 'Aucune valeur de référence pour cette zone et cette date.' }, { status: 400, headers });
