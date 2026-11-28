@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.4', d:'', items:['Nouvelle icône du site (carré bleu « € ») pour les onglets du navigateur, les résultats de recherche et l’écran d’accueil des téléphones']},
   {v:'1.9.3', d:'', items:['Feuille de route : l’affichage optimisé pour smartphones devient la priorité']},
   {v:'1.9.2', d:'', items:['Formulaire de contact : messages jusqu’à 2 500 caractères']},
   {v:'1.9.1', d:'', items:['Feuille de route revue : organisée par module à venir (Épargne, Fiscalité, Logement, Frais de voyage, Assurance santé, Fin de VI, Témoignages, Carte du monde)']},
