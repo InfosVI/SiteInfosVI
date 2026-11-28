@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.7', d:'', items:['Propositions : la limite des 12 heures s’applique désormais par type de valeur et par zone, pour proposer des valeurs pour d’autres zones ou pour la part fixe ; mention « Déjà proposé » sur ce qui est en attente des 12 heures']},
   {v:'1.9.6', d:'', items:['Espace admin : suppression définitive d’une proposition ; journal des requêtes rangé par jour de la requête, avec les imports lancés à la main signalés']},
   {v:'1.9.5', d:'', items:['Administration du serveur : sauvegarde complète à télécharger à tout moment, en une archive nommée avec la date et les versions, et commande pour changer le mot de passe de l’aperçu privé']},
   {v:'1.9.4', d:'', items:['Nouvelle icône du site (carré bleu « € ») pour les onglets du navigateur, les résultats de recherche et l’écran d’accueil des téléphones']},
@@ -871,8 +872,8 @@ V.pays = ()=>{
 };
 
 const truncPct=(base,p)=>Math.trunc(base*(1+p/100)*100)/100;
-function initProposals(){ st.proposals ??= []; st.quota ??= {up:0, down:0}; }
-function appliquerPropositions(d){ if(d&&Array.isArray(d.propositions)){ st.proposals=d.propositions; st.quota=d.quota||st.quota; } }
+function initProposals(){ st.proposals ??= []; st.quota ??= {up:0, down:0}; st.deja ??= []; }
+function appliquerPropositions(d){ if(d&&Array.isArray(d.propositions)){ st.proposals=d.propositions; st.quota=d.quota||st.quota; st.deja=Array.isArray(d.deja)?d.deja:[]; } }
 async function loadPropositions(){ appliquerPropositions(await getJson('/api/propositions')); }
 function propLine(p,short=false){
   const eur = p.input==='eur';
@@ -882,6 +883,9 @@ function propLine(p,short=false){
   return `<span class="num">${vEur} · ${vPct} <span class="muted">par rapport à la valeur du ${d1(p.ref)} (${fmt(p.refGeo)} €)</span></span>${p.at?`<br><span class="small muted">proposée le ${fmtDay(p.at)}</span>`:''}
 ${short?'':`<br><span class="small muted">Valable à partir du ${d1(p.eff)} · ${p.type==='fixe'?'Part fixe, toutes les zones':'Part géographique · '+esc(D.canada[p.z]?.label||p.z)}</span>`}`;
 }
+// Limite des 12 h : par type de valeur et par zone (la part fixe vaut pour toutes les zones)
+function dejaPropose(type,z){ const zz=type==='fixe'?'TOUTES':z; return (st.deja||[]).find(d=>d.type===type&&d.z===zz&&d.prochain>new Date().toISOString()); }
+const quandProchaine=iso=>new Date(iso).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});
 V.proposer = ()=>{
   initProposals();
   const fixe = st.ptype==='fixe';
@@ -897,21 +901,22 @@ V.proposer = ()=>{
   const cur=st.proposals.map((p,i)=>({...p,i})).filter(p=> fixe ? p.type==='fixe' && p.eff===sel : p.type!=='fixe' && p.eff===sel && p.z===z);
   const byQ={[sel]:cur}; const qs=[sel];
   const label = fixe ? 'Part fixe' : 'Part géographique';
+  const deja = dejaPropose(fixe?'fixe':'geo', z);
   return `<section class="view"><h1>Proposer une valeur d'indemnité</h1>
   <p class="muted" style="margin:0">Les détails des arrêtés du Journal officiel ne sont pas toujours repris ailleurs : proposez une valeur, la plus votée est validée par l'administrateur.</p>
   <form class="panel" id="pform" novalidate><h2>Votre proposition</h2>
     <div class="pgrid">
     <div class="field"><label>Type de valeur</label><div class="seg" role="group" aria-label="Type de valeur">
-      <button type="button" data-pt="geo" aria-pressed="${!fixe}">Part géographique</button><button type="button" data-pt="fixe" aria-pressed="${fixe}">Part fixe</button></div></div>
+      <button type="button" data-pt="geo" aria-pressed="${!fixe}">Part géographique</button><button type="button" data-pt="fixe" aria-pressed="${fixe}">Part fixe${dejaPropose('fixe')?' · déjà proposé':''}</button></div></div>
     <div class="field"><label>Je connais</label><div class="seg" role="group"><button type="button" data-pm="eur" aria-pressed="${(st.pm||'eur')==='eur'}">Le montant en €</button><button type="button" data-pm="pct" aria-pressed="${st.pm==='pct'}">La variation en %</button></div></div>
-    ${fixe?'<div class="field"><label>Zone</label><div class="pbox muted">Toutes les zones (part fixe identique partout)</div></div>':`<div class="field"><label for="pzone">Zone</label><select id="pzone">${Object.entries(D.canada).map(([k,v])=>`<option value="${esc(k)}" ${k===z?'selected':''}>${esc(v.label)}</option>`).join('')}</select></div>`}
+    ${fixe?'<div class="field"><label>Zone</label><div class="pbox muted">Toutes les zones (part fixe identique partout)</div></div>':`<div class="field"><label for="pzone">Zone</label><select id="pzone">${Object.entries(D.canada).map(([k,v])=>`<option value="${esc(k)}" ${k===z?'selected':''}>${esc(v.label)}${dejaPropose('geo',k)?' · déjà proposé':''}</option>`).join('')}</select></div>`}
     <div class="field"><label for="pmonth">Valable à partir du 1er</label><select id="pmonth">${months.slice().reverse().map(m=>`<option value="${m}" ${m===sel?'selected':''}>${mlabel(m)}${m===CURRENT_MONTH?' · mois en cours':m>CURRENT_MONTH?' · à venir':''}${!fixe&&/-(01|04|07|10)$/.test(m)?' · début de trimestre':''}${official(m)?' · arrêté publié':''}</option>`).join('')}</select></div>
     <p class="note small pfull" style="margin:0">Valeur précédente : <strong class="num">${fmt(ref.geo)} €</strong> de ${label.toLowerCase()}${fixe?' (identique pour toutes les zones)':''}, valable depuis le <strong>${d1(ref.m)}</strong>. Une variation en % se calcule toujours par rapport à cette valeur datée.${fixe?' La part fixe change rarement, à n\'importe quelle date.':''}</p>
     <div class="field"><label for="pval">${st.pm==='pct'?'Variation (%) par rapport au '+d1(ref.m):label+' (€)'}</label><input type="number" id="pval" step="0.01" placeholder="${st.pm==='pct'?(fixe?'ex. 1,50':'ex. 0,71'):(fixe?'ex. 784,46':'ex. 1889,73')}" data-ref="${ref.geo}" data-refm="${ref.m}"></div>
     <div class="field"><label>Calculé automatiquement</label><output id="pcalc" class="num pbox">—</output></div>
     <div class="field"><label for="psrc">Source ou justificatif (facultatif)</label><input type="text" id="psrc" maxlength="300" placeholder="Lien vers l'arrêté, bulletin, commentaire…"></div>
     <div class="field"><label>Vérification anti-robot</label>${captcha('pcap')}</div>
-    <div class="pfull" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn" type="submit">Envoyer la proposition</button><span class="small muted">Une proposition toutes les 12 heures par visiteur. Aucun compte nécessaire.</span></div>
+    <div class="pfull" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn" type="submit" ${deja?'disabled':''}>Envoyer la proposition</button>${deja?`<span class="pill dejaprop" title="Vous avez déjà proposé une valeur pour ce type et cette zone : choisissez une autre zone ou un autre type, ou revenez plus tard">Déjà proposé · nouvelle proposition possible le ${quandProchaine(deja.prochain)}</span>`:''}<span class="small muted">Une proposition toutes les 12 heures par type de valeur et par zone. Aucun compte nécessaire.</span></div>
     </div>
   </form>
   <div class="panel"><h2>Valeurs proposées</h2>
@@ -1785,12 +1790,13 @@ document.addEventListener('submit',e=>{
       toast(r.refused?'Valeur refusée (contrôle '+r.failed+') : rien n’est enregistré, voir l’historique.':`Enregistré : ${fmt(r.value)} €, source : ${src}.`); }); return; }
   if(e.target.id==='pform'){ const i=$('#pval'); const v=parseFloat(i.value.replace(',','.')); if(!isFinite(v)){ toast('Indiquez un montant ou une variation.'); return; }
     if(!captchaOk('pcap')){ toast('Cochez la vérification anti-robot.'); return; }
+    if(dejaPropose(st.ptype==='fixe'?'fixe':'geo',$('#pzone')?.value)){ toast('Déjà proposé pour ce type et cette zone : choisissez une autre zone ou un autre type.'); return; }
     const fx=st.ptype==='fixe', btn=e.target.querySelector('button[type=submit]'); btn.disabled=true;
     apiPost('/api/propositions',{type:fx?'fixe':'geo', z:fx?'TOUTES':$('#pzone').value, eff:$('#pmonth').value, saisie:st.pm==='pct'?'pct':'eur', valeur:v, source:$('#psrc').value||'', altcha:captchaVal('pcap')}).then(d=>{
       if(d.blocked) return blockNow(d.until);
-      if(d.ok){ appliquerPropositions(d); toast('Proposition envoyée. Prochaine possible dans 12 h.'); render(); }
-      else toast(d.prochain?`Une seule proposition toutes les 12 heures : prochaine possible le ${new Date(d.prochain).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}.`:(d.error||'Envoi impossible.'));
-    }).catch(()=>toast('Envoi impossible : pas de réponse du serveur.')).finally(()=>{ btn.disabled=false; captchaReset('pcap'); }); return; }
+      if(d.ok){ appliquerPropositions(d); toast('Proposition envoyée. Prochaine possible dans 12 h pour ce type et cette zone ; les autres restent ouvertes.'); render(); }
+      else toast(d.prochain?`Une seule proposition toutes les 12 heures pour ce type et cette zone : prochaine possible le ${new Date(d.prochain).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}.`:(d.error||'Envoi impossible.'));
+    }).catch(()=>toast('Envoi impossible : pas de réponse du serveur.')).finally(()=>{ btn.disabled=false; captchaReset('pcap'); loadPropositions().then(render).catch(()=>{}); }); return; }
   if(e.target.id==='contact'){ const f=e.target, m=$('#cmsg').value.trim(), em=$('#cmail').value.trim();
     if(!m){ toast('Écrivez votre message.'); return; }
     if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ toast('Adresse email non valide (ou laissez le champ vide).'); return; }

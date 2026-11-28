@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { and, eq, gt, inArray, or, lt, desc } from 'drizzle-orm';
+import { and, eq, gt, inArray, or, lt, desc, like } from 'drizzle-orm';
 import { getDb, schema } from './db';
 import { buildExports } from './export';
 import { quarterStart, addMonths } from './format';
@@ -7,7 +7,7 @@ import { addHistory } from './collect/core';
 
 /**
  * Propositions de la communauté et votes.
- * - une proposition toutes les 12 h par visiteur (cookie OU réseau), captcha obligatoire ;
+ * - une proposition toutes les 12 h par visiteur (cookie OU réseau) pour un même type de valeur et une même zone, captcha obligatoire ;
  * - votes : 3 positifs et 2 négatifs par 24 h, un seul vote par proposition ; captcha résolu une fois par heure ;
  * - une seule valeur validée par partie + zone + date (les autres sont rejetées automatiquement) ;
  * - nettoyage quotidien : rejetées de plus de 3 mois, en attente de plus de 6 mois, et 7 propositions au plus par groupe.
@@ -45,7 +45,26 @@ export async function lister(cles: { votant: string; reseau: string }) {
       s: STATUT_AFFICHE[r.statut] ?? 'En attente', auto: !!r.auto, my: mien ? mien.sens : 0, at: new Date(r.at).toISOString().slice(0, 10),
     };
   });
-  return { propositions, quota: await quotaRestant(cles) };
+  return { propositions, quota: await quotaRestant(cles), deja: await dejaProposees(cles) };
+}
+
+/** Clés de la limite des 12 h : une par type de valeur + zone, pour le cookie et pour le réseau */
+export const clesLimite = (type: string, zone: string, cles: { votant: string; reseau: string }) =>
+  [cles.votant, cles.reseau].map(h => `prop|${type}|${zone}|${h}`);
+
+/** Types + zones déjà proposés par ce visiteur depuis moins de 12 h, avec l'heure de la prochaine proposition possible */
+export async function dejaProposees(cles: { votant: string; reseau: string }) {
+  const db = await getDb() as any;
+  const rows = await db.select().from(schema.contactLimites).where(and(gt(schema.contactLimites.at, new Date(Date.now() - DELAI_PROP_H * 3600_000)),
+    or(like(schema.contactLimites.cle, `prop|%|${cles.votant}`), like(schema.contactLimites.cle, `prop|%|${cles.reseau}`))));
+  const out = new Map<string, { type: string; z: string; prochain: string }>();
+  for (const r of rows) {
+    const parts = String(r.cle).split('|'); if (parts.length < 4) continue;
+    const type = parts[1], z = parts.slice(2, -1).join('|'), k = `${type}|${z}`;
+    const prochain = new Date(new Date(r.at).getTime() + DELAI_PROP_H * 3600_000).toISOString();
+    if (!out.has(k) || out.get(k)!.prochain < prochain) out.set(k, { type, z, prochain });
+  }
+  return [...out.values()];
 }
 
 async function quotaRestant(cles: { votant: string; reseau: string }) {
