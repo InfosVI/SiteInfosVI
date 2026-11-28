@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Sauvegarde immédiate du site, déposée dans ~/sauvegardes de l'administrateur pour être téléchargée sur son ordinateur.
-# Lancée depuis l'ordinateur par outils/recuperer-sauvegarde.ps1 (ou à la main : site-sauvegarde).
+# Sauvegarde immédiate du site, déposée dans ~/sauvegardes (une seule archive, nommée avec la date et les versions)
+# pour être téléchargée sur l'ordinateur. Depuis l'ordinateur, en une ligne :
+#   ssh -t <serveur> site-sauvegarde; scp "<serveur>:sauvegardes/*.tar.gz" <dossier>
 [ "$(id -u)" -eq 0 ] || exec sudo SAUVEGARDE_UTILISATEUR="$(id -un)" "$0" "$@"
 set -euo pipefail
 /usr/local/lib/sauvegarder.sh manuelle
-echo "Sauvegarde prête : $(cat "$(getent passwd "${SAUVEGARDE_UTILISATEUR:-ubuntu}" | cut -d: -f6)/sauvegardes/date.txt")"
+D="$(getent passwd "${SAUVEGARDE_UTILISATEUR:-ubuntu}" | cut -d: -f6)/sauvegardes"
+echo "Sauvegarde prête : $(ls -t "$D"/*.tar.gz | head -1 | xargs basename)"

@@ -118,9 +118,10 @@ droits d'administrateur.
 | `site-etat` | état général : version en ligne, conteneurs, tâches programmées, dernières sauvegardes, espace disque |
 | `site-version` | version en ligne et versions publiées disponibles |
 | `sudo site-version vX.Y.Z` | **installe tout de suite une version publiée sur GitHub** (mise à jour sans attendre la nuit, ou retour à une version précédente) ; sauvegarde avant, retour automatique en cas de problème |
-| `site-sauvegarde` | sauvegarde immédiate, déposée dans `~/sauvegardes` pour être téléchargée (voir ci-dessous) |
+| `site-sauvegarde` | sauvegarde immédiate : une archive nommée avec la date et les versions, déposée dans `~/sauvegardes` (voir ci-dessous) |
 | `site-visites` | dernières pages vues et réseaux les plus actifs, adresses IP tronquées (`site-visites 100 7` : 100 pages sur 7 jours) |
 | `site-mdp-admin` | choisir un nouveau mot de passe pour l'espace admin (en cas d'oubli) |
+| `site-mdp-apercu` | choisir un nouveau mot de passe pour l'aperçu privé |
 | `sudo site-debloquer` | lever les blocages de 48 h (après trop d'échecs de connexion à l'espace admin) |
 
 Tâches automatiques, lançables aussi à la main :
@@ -147,16 +148,17 @@ sur l'aperçu.
 
 ### Télécharger une sauvegarde sur son ordinateur
 
-Depuis l'ordinateur (PowerShell, Terminal…), deux commandes : la première fait une sauvegarde à l'instant sur le serveur,
-la seconde la télécharge dans le dossier choisi.
+Une seule ligne, depuis l'ordinateur (PowerShell, Terminal…) : sauvegarde à l'instant sur le serveur, puis téléchargement.
 
 ```
-ssh -t <utilisateur>@<serveur> site-sauvegarde
-scp "<utilisateur>@<serveur>:sauvegardes/*" <dossier de votre ordinateur>
+ssh -t <utilisateur>@<serveur> site-sauvegarde; scp "<utilisateur>@<serveur>:sauvegardes/*.tar.gz" <dossier>
 ```
 
-La copie contient la base du site (`site.sql.gz`), les statistiques (`stats.sql.gz`), la configuration du serveur
-(`env`, avec ses secrets) et les réglages du site (`site.json`) : à garder en lieu sûr.
+On obtient une archive dont le nom dit tout, par exemple
+`sauvegarde_2026-11-28_15h04UTC_site-v1.9.4_apercu-v1.9.5-1a2b3c4.tar.gz` (date et heure UTC, version du vrai site,
+version de l'aperçu). Elle contient la base du site (`site.sql.gz`), les statistiques (`stats.sql.gz`), la configuration
+du serveur (`env`, avec ses secrets) et les réglages du site (`site.json`) : à garder en lieu sûr. Astuce : un raccourci
+dans `~/.ssh/config` (`Host`, `HostName`, `User`, `IdentityFile`) permet d'écrire simplement `ssh -t serveur site-sauvegarde`.
 
 ### Changer l'adresse du dépôt GitHub (renommage, autre compte ou organisation)
 

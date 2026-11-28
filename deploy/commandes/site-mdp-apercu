@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Choisir un nouveau mot de passe pour l'aperçu privé (apercu.<domaine>). Le mot de passe n'est jamais écrit en clair :
+# seule son empreinte est enregistrée dans /opt/indemnite/.env (APERCU_MOT_DE_PASSE_HASH).
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"   # la configuration est lisible par root seulement
+set -euo pipefail
+cd /opt/indemnite
+set -a; . ./.env; set +a
+while :; do
+  read -r -s -p "Nouveau mot de passe de l'aperçu privé (12 caractères minimum) : " MDP </dev/tty; echo
+  [ ${#MDP} -ge 12 ] || { echo "Trop court."; continue; }
+  read -r -s -p "Retapez-le : " MDP2 </dev/tty; echo
+  [ "$MDP" = "$MDP2" ] && break || echo "Les deux saisies sont différentes."
+done
+HASH=$(docker run --rm caddy:2.10-alpine caddy hash-password --plaintext "$MDP")
+unset MDP MDP2
+[[ "$HASH" == \$2* ]] || { echo "Échec du calcul de l'empreinte : rien n'est modifié."; exit 1; }
+python3 - "$HASH" <<'PY'
+import re,sys
+p='/opt/indemnite/.env'; s=open(p).read()
+s=re.sub(r"^APERCU_MOT_DE_PASSE_HASH=.*$", "APERCU_MOT_DE_PASSE_HASH='"+sys.argv[1]+"'", s, flags=re.M)
+open(p,'w').write(s)
+PY
+docker compose up -d caddy >/dev/null
+echo "Mot de passe de l'aperçu changé. Identifiant : $APERCU_UTILISATEUR"

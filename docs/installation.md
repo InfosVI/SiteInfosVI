@@ -65,6 +65,7 @@ Pris en compte en une minute environ, sans redémarrage. Sans ce fichier, le sit
 | `site-version` | version en ligne et versions disponibles |
 | `sudo site-version v1.4.1` | remettre une version précise |
 | `site-mdp-admin` | choisir un nouveau mot de passe pour l'espace admin (oubli) |
+| `site-mdp-apercu` | choisir un nouveau mot de passe pour l'aperçu privé |
 | `site-visites` (ou `site-visites 100 7` : 100 pages, 7 jours) | dernières pages vues et réseaux les plus actifs, adresses IP **tronquées** (journal gardé 30 jours) |
 | `sudo site-debloquer` | lever les blocages de 48 h (si l'administrateur s'est bloqué) |
 | `sudo /usr/local/lib/sauvegarder.sh` | sauvegarde immédiate |
@@ -93,12 +94,11 @@ Umami redémarre avec chaque mise à jour.
 ## Sauvegarde sur votre ordinateur
 
 Chaque nuit (03 h 47 UTC) et avant chaque mise en ligne, le serveur sauvegarde la base (7 copies gardées sur le serveur).
-Pour en avoir une copie chez soi, à n'importe quel moment : la commande `site-sauvegarde` fait une sauvegarde immédiate
-et la dépose dans `~/sauvegardes` de l'utilisateur SSH ; il ne reste qu'à la télécharger :
+Pour en avoir une copie chez soi, à n'importe quel moment, une ligne depuis l'ordinateur :
 
 ```
-ssh -t <utilisateur>@<serveur> site-sauvegarde
-scp <utilisateur>@<serveur>:sauvegardes/* <dossier de votre ordinateur>
+ssh -t <utilisateur>@<serveur> site-sauvegarde; scp "<utilisateur>@<serveur>:sauvegardes/*.tar.gz" <dossier>
 ```
 
-La copie contient la base du site, les statistiques et la configuration (`.env`, avec ses secrets) : la garder en lieu sûr.
+L'archive porte la date, l'heure et les versions du site et de l'aperçu dans son nom ; elle contient la base, les
+statistiques et la configuration (`.env`, avec ses secrets) : la garder en lieu sûr.

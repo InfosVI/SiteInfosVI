@@ -31,14 +31,22 @@ ls -1t "$DOSSIER"/site-*.sql.gz | tail -n +8 | xargs -r rm -f
 ls -1t "$DOSSIER"/env-* | tail -n +8 | xargs -r rm -f
 echo "$(date -u +%FT%TZ) Sauvegarde locale $NOM ($(du -h "$DOSSIER/$NOM" | cut -f1))" >> /var/log/indemnite-sauvegarde.log
 
-# Dernière sauvegarde mise à disposition de l'administrateur, pour la télécharger depuis son ordinateur (commande
-# site-sauvegarde, puis copie SSH lancée par l'ordinateur : le serveur ne joint jamais l'ordinateur). Contient aussi .env.
+# Dernière sauvegarde mise à disposition de l'administrateur, en UNE archive dont le nom dit tout :
+#   sauvegarde_2026-11-28_15h04UTC_site-v1.9.4_apercu-v1.9.5-1a2b3c4.tar.gz
+# (date et heure UTC, version du vrai site, version de l'aperçu). Contient : site.sql.gz, stats.sql.gz, env, site.json.
+# Téléchargée depuis l'ordinateur par SSH (le serveur ne joint jamais l'ordinateur) ; seule la dernière est gardée ici.
 U="${SAUVEGARDE_UTILISATEUR:-ubuntu}"
 if id "$U" >/dev/null 2>&1; then
   D="$(getent passwd "$U" | cut -d: -f6)/sauvegardes"; install -d -m 700 -o "$U" -g "$U" "$D"
-  cp "$DOSSIER/$NOM" "$D/site.sql.gz"
-  [ -f "$DOSSIER/stats-${NOM#site-}" ] && cp "$DOSSIER/stats-${NOM#site-}" "$D/stats.sql.gz"
-  cp .env "$D/env"; [ -d config-site ] && cp config-site/site.json "$D/site.json" 2>/dev/null || true
-  date -u +%FT%TZ > "$D/date.txt"
-  chown "$U:$U" "$D"/*; chmod 600 "$D"/*
+  IMG_AP="ghcr.io/$GITHUB_PROPRIETAIRE/indemnite-site:${APERCU_TAG:-preparation}"
+  V_AP=$(docker run --rm --entrypoint node "$IMG_AP" -p "require('/app/package.json').version" 2>/dev/null || echo "inconnue")
+  SHA=$(docker image inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$IMG_AP" 2>/dev/null | sed -n 's/^GIT_SHA=//p' | cut -c1-7)
+  T=$(mktemp -d)
+  cp "$DOSSIER/$NOM" "$T/site.sql.gz"
+  [ -f "$DOSSIER/stats-${NOM#site-}" ] && cp "$DOSSIER/stats-${NOM#site-}" "$T/stats.sql.gz"
+  cp .env "$T/env"; [ -f config-site/site.json ] && cp config-site/site.json "$T/site.json"
+  A="sauvegarde_$(date -u +%Y-%m-%d_%Hh%M)UTC_site-${IMAGE_TAG:-inconnue}_apercu-v${V_AP}${SHA:+-$SHA}.tar.gz"
+  find "$D" -mindepth 1 -maxdepth 1 -delete
+  tar -C "$T" -czf "$D/$A" . && rm -rf "$T"
+  chown "$U:$U" "$D/$A"; chmod 600 "$D/$A"
 fi
