@@ -248,6 +248,7 @@ V.accueil = ()=>`
 
 /* ===== Nouveautés (une entrée par version mise en ligne) et feuille de route (par ordre de priorité) ===== */
 const NEWS=[
+  {v:'1.9.9', d:'', items:['Maintenance : outils de construction et de tests du site mis à jour (avertissements GitHub sur Node.js 20 supprimés)']},
   {v:'1.9.8', d:'', items:['Propositions : la limite des 12 heures tient aussi compte de la date, pour proposer une valeur pour un autre mois dans la même zone']},
   {v:'1.9.7', d:'', items:['Propositions : la limite des 12 heures s’applique désormais par type de valeur et par zone, pour proposer des valeurs pour d’autres zones ou pour la part fixe ; mention « Déjà proposé » sur ce qui est en attente des 12 heures']},
   {v:'1.9.6', d:'', items:['Espace admin : suppression définitive d’une proposition ; journal des requêtes rangé par jour de la requête, avec les imports lancés à la main signalés']},
